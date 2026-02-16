@@ -1,0 +1,55 @@
+.notif-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 4000;
+}
+
+.notif-modal {
+  min-width: 280px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideIn 0.3s ease forwards;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Types */
+.notif-success {
+  background-color: #2ecc71;
+}
+
+.notif-error {
+  background-color: #e74c3c;
+}
+
+.notif-warning {
+  background-color: #f39c12;
+}
+
+.notif-info {
+  background-color: #3498db;
+}
+
+.notif-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

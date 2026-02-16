@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useNotification } from "../../context/NotificationContext";
 import "./Auth.css";
 
 const SignIn = () => {
@@ -8,7 +9,6 @@ const SignIn = () => {
     identity: "",
     password: "",
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -16,27 +16,35 @@ const SignIn = () => {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  const { showNotification } = useNotification();
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       await signin(formData.identity, formData.password);
+
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Signed in successfully",
+      });
+
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Login failed. Please check your credentials.",
-      );
+      showNotification({
+        open: true,
+        type: "error",
+        message: err?.message || "Login failed",
+      });
     } finally {
       setLoading(false);
     }
@@ -50,8 +58,6 @@ const SignIn = () => {
         <p className="auth-subtitle">
           Welcome back! Please sign in to continue.
         </p>
-
-        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

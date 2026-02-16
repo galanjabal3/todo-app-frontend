@@ -63,8 +63,7 @@ const SignUp = () => {
     } catch (err) {
       setMessage({
         type: "error",
-        text:
-          err.response?.data?.message || "Sign up failed. Please try again.",
+        text: err?.message || "Sign up failed. Please try again.",
       });
     } finally {
       setLoading(false);

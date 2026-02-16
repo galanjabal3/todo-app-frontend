@@ -38,10 +38,7 @@ const JoinGroup = () => {
         navigate("/dashboard");
       }, 2000);
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Invalid code or link. Please try again.",
-      );
+      setError(err?.message || "Invalid code or link. Please try again.");
     } finally {
       setLoading(false);
     }

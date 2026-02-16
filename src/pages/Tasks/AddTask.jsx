@@ -69,7 +69,7 @@ const AddTask = () => {
       showNotification({
         open: true,
         type: "error",
-        message: err.response?.data?.message || "Failed to create task",
+        message: err?.message || "Failed to create task",
       });
     } finally {
       setLoading(false);

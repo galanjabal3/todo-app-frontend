@@ -53,7 +53,7 @@ const Profile = () => {
       showNotification({
         open: true,
         type: "error",
-        message: error?.data?.message || "Failed to update profile.",
+        message: error?.message || "Failed to update profile.",
       });
     } finally {
       setLoading(false);
@@ -72,11 +72,11 @@ const Profile = () => {
       return;
     }
 
-    if (passwordData.new_password.length < 6) {
+    if (passwordData.new_password.length < 8) {
       showNotification({
         open: true,
         type: "error",
-        text: "Password must be at least 6 characters.",
+        message: "Password must be at least 8 characters.",
       });
       return;
     }
@@ -84,7 +84,7 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      await userAPI.updateProfile({
+      await userAPI.updatePassword({
         current_password: passwordData.current_password,
         password: passwordData.new_password,
       });
@@ -97,13 +97,18 @@ const Profile = () => {
       showNotification({
         open: true,
         type: "success",
-        text: "Password updated successfully! ✓",
+        message: "Password updated successfully",
       });
+
+      setTimeout(() => {
+        localStorage.clear();
+        window.location.href = "/signin";
+      }, 2000);
     } catch (error) {
       showNotification({
         open: true,
         type: "error",
-        text: error.response?.data?.message || "Failed to update password.",
+        message: error?.message || "Failed to update password.",
       });
     } finally {
       setLoading(false);
@@ -185,7 +190,8 @@ const Profile = () => {
 
           <div className="profile-info">
             <p>
-              <strong>📅 Member since:</strong> {formatDisplayDate(user?.created_at)}
+              <strong>📅 Member since:</strong>{" "}
+              {formatDisplayDate(user?.created_at)}
             </p>
           </div>
 
@@ -254,7 +260,7 @@ const Profile = () => {
                 onChange={handlePasswordChange}
                 required
                 disabled={loading}
-                placeholder="Min 6 characters"
+                placeholder="Min 8 characters"
               />
             </div>
 

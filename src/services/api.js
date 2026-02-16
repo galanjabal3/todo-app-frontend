@@ -28,7 +28,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     const res = response.data;
-    // console.log('res', res);
 
     if (res?.data !== undefined) {
       return res.data;
@@ -57,6 +56,7 @@ export const authAPI = {
 export const userAPI = {
   getProfile: () => api.get("/user/profile"),
   updateProfile: (data) => api.put("/user/profile", data),
+  updatePassword: (data) => api.put("/user/profile/password", data),
 };
 
 // Task APIs

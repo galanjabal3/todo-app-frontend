@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import AddTask from "./pages/Tasks/AddTask";
 import Profile from "./pages/Profile/Profile";
 import JoinGroup from "./pages/Group/JoinGroup";
+import GroupDetail from "./pages/Group/GroupDetail";
 import "./App.css";
 
 // Protected Route Component
@@ -74,6 +75,16 @@ function AppRoutes() {
         <Route path="profile" element={<Profile />} />
         <Route path="groups/join" element={<JoinGroup />} />
       </Route>
+
+      {/* Protected Routes - TANPA navbar (tanpa Layout) */}
+      <Route
+        path="/groups/:groupId"
+        element={
+          <ProtectedRoute>
+            <GroupDetail />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -30,7 +30,6 @@ const Dashboard = () => {
         taskAPI.getTasks(),
         groupAPI.getMyGroups(),
       ]);
-
       setTasks(tasksResponse || []);
       setGroups(groupsResponse || []);
     } catch (error) {
@@ -204,7 +203,8 @@ const Dashboard = () => {
 
                         {task.group_id && (
                           <span className="task-group">
-                            👥 {groups.find((g) => g.id === task.group_id)?.name ||
+                            👥{" "}
+                            {groups.find((g) => g.id === task.group_id)?.name ||
                               "Group"}
                           </span>
                         )}
@@ -251,7 +251,11 @@ const Dashboard = () => {
                 </div>
               ) : (
                 groups.map((group) => (
-                  <div key={group.id} className="group-card">
+                  <div
+                    key={group.id}
+                    className="group-card"
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                  >
                     <div className="group-icon">👥</div>
                     <div>
                       <h3>{group.name}</h3>
@@ -272,20 +276,16 @@ const Dashboard = () => {
         onClose={() => setSelectedTask(null)}
         onSave={async () => {
           await taskAPI.updateTask(selectedTask.id, selectedTask);
-
           setTasks((prev) =>
             prev.map((t) => (t.id === selectedTask.id ? selectedTask : t)),
           );
-
           setEditingTask(false);
         }}
         onDelete={async () => {
           await taskAPI.deleteTask(selectedTask.id);
-
           setTasks((prev) =>
             prev.filter((task) => task.id !== selectedTask.id),
           );
-
           setEditingTask(false);
         }}
       />

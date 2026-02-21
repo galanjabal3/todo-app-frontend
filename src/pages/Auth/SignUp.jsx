@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import "./Auth.css";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -11,21 +10,14 @@ const SignUp = () => {
     password_confirm: "",
     full_name: "",
   });
-  const [message, setMessage] = useState({
-    type: "", // 'success' | 'error'
-    text: "",
-  });
-
+  const [message, setMessage] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const { signup } = useAuth();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     setMessage({ type: "", text: "" });
   };
 
@@ -51,15 +43,11 @@ const SignUp = () => {
 
     try {
       await signup(formData);
-
       setMessage({
         type: "success",
         text: "Account created successfully! Redirecting...",
       });
-
-      setTimeout(() => {
-        navigate("/signin");
-      }, 1500);
+      setTimeout(() => navigate("/signin"), 1500);
     } catch (err) {
       setMessage({
         type: "error",
@@ -72,28 +60,52 @@ const SignUp = () => {
 
   useEffect(() => {
     if (message.text) {
-      const timer = setTimeout(() => {
-        setMessage({ type: "", text: "" });
-      }, 3000);
-
+      const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       return () => clearTimeout(timer);
     }
   }, [message]);
 
-  return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-logo">📝</div>
-        <h1>Sign Up</h1>
-        <p className="auth-subtitle">Create your account to get started.</p>
+  // Reusable input class
+  const inputClass =
+    "w-full px-3 py-3 border border-gray-200 rounded-lg text-base transition-colors duration-200 focus:outline-none focus:border-indigo-600 disabled:opacity-60";
 
+  return (
+    // auth-container
+    <div className="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-[#667eea] to-[#764ba2]">
+      {/* auth-card */}
+      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-[450px]">
+        {/* auth-logo */}
+        <div className="text-6xl text-center mb-4">📝</div>
+
+        <h1 className="text-3xl font-bold mb-2 text-gray-900 text-center">
+          Sign Up
+        </h1>
+        <p className="text-center text-gray-500 mb-8 text-[0.95rem]">
+          Create your account to get started.
+        </p>
+
+        {/* message success / error */}
         {message.text && (
-          <div className={`message ${message.type}`}>{message.text}</div>
+          <div
+            className={`px-4 py-3 rounded-lg mb-5 text-sm ${
+              message.type === "success"
+                ? "bg-emerald-100 text-emerald-600"
+                : "bg-red-100 text-red-500"
+            }`}
+          >
+            {message.text}
+          </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="full_name">Full Name</label>
+          {/* Full Name */}
+          <div className="mb-5">
+            <label
+              htmlFor="full_name"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Full Name
+            </label>
             <input
               type="text"
               id="full_name"
@@ -103,11 +115,18 @@ const SignUp = () => {
               required
               placeholder="Enter your full name"
               disabled={loading}
+              className={inputClass}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          {/* Email */}
+          <div className="mb-5">
+            <label
+              htmlFor="email"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Email
+            </label>
             <input
               type="email"
               id="email"
@@ -117,11 +136,18 @@ const SignUp = () => {
               required
               placeholder="Enter your email"
               disabled={loading}
+              className={inputClass}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="username">Username (optional)</label>
+          {/* Username */}
+          <div className="mb-5">
+            <label
+              htmlFor="username"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Username (optional)
+            </label>
             <input
               type="text"
               id="username"
@@ -130,11 +156,18 @@ const SignUp = () => {
               onChange={handleChange}
               placeholder="Choose a username"
               disabled={loading}
+              className={inputClass}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+          {/* Password */}
+          <div className="mb-5">
+            <label
+              htmlFor="password"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Password
+            </label>
             <input
               type="password"
               id="password"
@@ -144,11 +177,18 @@ const SignUp = () => {
               required
               placeholder="Create a password (min 8 characters)"
               disabled={loading}
+              className={inputClass}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password_confirm">Confirm Password</label>
+          {/* Confirm Password */}
+          <div className="mb-5">
+            <label
+              htmlFor="password_confirm"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Confirm Password
+            </label>
             <input
               type="password"
               id="password_confirm"
@@ -158,20 +198,29 @@ const SignUp = () => {
               required
               placeholder="Confirm your password"
               disabled={loading}
+              className={inputClass}
             />
           </div>
 
+          {/* btn btn-primary btn-block */}
           <button
             type="submit"
-            className="btn btn-primary btn-block"
             disabled={loading}
+            className="w-full py-[0.625rem] px-5 bg-indigo-600 text-white rounded-lg text-base font-medium cursor-pointer transition-all duration-200 inline-flex items-center justify-center gap-2 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
-        <p className="auth-footer">
-          Already have an account? <Link to="/signin">Sign In</Link>
+        {/* auth-footer */}
+        <p className="text-center mt-6 text-gray-500 text-sm">
+          Already have an account?{" "}
+          <Link
+            to="/signin"
+            className="text-indigo-600 no-underline font-medium hover:underline"
+          >
+            Sign In
+          </Link>
         </p>
       </div>
     </div>

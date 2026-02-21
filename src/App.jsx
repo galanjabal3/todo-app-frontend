@@ -8,6 +8,7 @@ import {
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import Layout from "./components/Layout/Layout";
+import Loading from "./components/Loading/Loading";
 import SignIn from "./pages/Auth/SignIn";
 import SignUp from "./pages/Auth/SignUp";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -15,15 +16,12 @@ import AddTask from "./pages/Tasks/AddTask";
 import Profile from "./pages/Profile/Profile";
 import JoinGroup from "./pages/Group/JoinGroup";
 import GroupDetail from "./pages/Group/GroupDetail";
-import "./App.css";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+  if (loading) return <Loading />;
 
   return isAuthenticated ? children : <Navigate to="/signin" />;
 };
@@ -33,7 +31,11 @@ const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen text-xl text-gray-500">
+        Loading...
+      </div>
+    );
   }
 
   return !isAuthenticated ? children : <Navigate to="/dashboard" />;

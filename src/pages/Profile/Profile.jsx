@@ -3,7 +3,13 @@ import { useAuth } from "../../context/AuthContext";
 import { userAPI } from "../../services/api";
 import { useNotification } from "../../context/NotificationContext";
 import { formatDisplayDate } from "../../utils/dateUtils";
-import "./Profile.css";
+
+const inputClass =
+  "w-full px-3 py-3 border border-gray-200 rounded-lg text-base transition-colors duration-200 focus:outline-none focus:border-indigo-600 disabled:opacity-60 disabled:bg-gray-50";
+const btnPrimary =
+  "px-5 py-[0.625rem] bg-indigo-600 text-white rounded-lg font-medium cursor-pointer transition-all duration-200 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2";
+const btnSecondary =
+  "px-5 py-[0.625rem] bg-white text-gray-900 border border-gray-200 rounded-lg font-medium cursor-pointer transition-all duration-200 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed";
 
 const Profile = () => {
   const { user, updateUser, signout } = useAuth();
@@ -22,24 +28,15 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handlePasswordChange = (e) => {
-    setPasswordData({
-      ...passwordData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handlePasswordChange = (e) =>
+    setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const data = await userAPI.updateProfile(formData);
       updateUser(data);
@@ -62,7 +59,6 @@ const Profile = () => {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-
     if (passwordData.new_password !== passwordData.confirm_password) {
       showNotification({
         open: true,
@@ -71,7 +67,6 @@ const Profile = () => {
       });
       return;
     }
-
     if (passwordData.new_password.length < 8) {
       showNotification({
         open: true,
@@ -80,9 +75,7 @@ const Profile = () => {
       });
       return;
     }
-
     setLoading(true);
-
     try {
       await userAPI.updatePassword({
         current_password: passwordData.current_password,
@@ -99,7 +92,6 @@ const Profile = () => {
         type: "success",
         message: "Password updated successfully",
       });
-
       setTimeout(() => {
         localStorage.clear();
         window.location.href = "/signin";
@@ -126,33 +118,48 @@ const Profile = () => {
 
   const getInitials = (name) => {
     if (!name) return "?";
-
     return name
       .trim()
       .split(" ")
       .filter(Boolean)
       .slice(0, 2)
-      .map((word) => word[0].toUpperCase())
+      .map((w) => w[0].toUpperCase())
       .join("");
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <h1>👤 My Profile</h1>
-        <button className="btn btn-danger" onClick={signout}>
+    <div className="p-8 max-w-[800px] mx-auto md:p-4">
+      {/* profile-header */}
+      <div className="flex justify-between items-center mb-8 md:flex-col md:items-start md:gap-4">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          👤 My Profile
+        </h1>
+        <button
+          onClick={signout}
+          className="px-5 py-[0.625rem] bg-red-500 text-white rounded-lg font-medium cursor-pointer transition-all hover:bg-red-600 md:w-full"
+        >
           Sign Out
         </button>
       </div>
 
-      <div className="profile-card">
-        <div className="profile-avatar">
-          <div className="avatar-circle">{getInitials(user?.full_name)}</div>
+      {/* profile-card — Info */}
+      <div className="bg-white p-8 rounded-2xl shadow-md mb-8 md:p-6">
+        {/* Avatar */}
+        <div className="flex justify-center mb-8">
+          <div className="w-[100px] h-[100px] rounded-full bg-gradient-to-br from-indigo-600 to-indigo-800 text-white flex items-center justify-center text-[2.5rem] font-semibold shadow-[0_4px_6px_rgba(79,70,229,0.3)] md:w-20 md:h-20 md:text-[2rem]">
+            {getInitials(user?.full_name)}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="full_name">Full Name</label>
+          {/* Full Name */}
+          <div className="mb-5">
+            <label
+              htmlFor="full_name"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Full Name
+            </label>
             <input
               type="text"
               id="full_name"
@@ -160,11 +167,18 @@ const Profile = () => {
               value={formData.full_name}
               onChange={handleChange}
               disabled={!isEditing || loading}
+              className={inputClass}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
+          {/* Username */}
+          <div className="mb-5">
+            <label
+              htmlFor="username"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Username
+            </label>
             <input
               type="text"
               id="username"
@@ -173,11 +187,18 @@ const Profile = () => {
               onChange={handleChange}
               disabled={!isEditing || loading}
               placeholder="Optional"
+              className={inputClass}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          {/* Email */}
+          <div className="mb-5">
+            <label
+              htmlFor="email"
+              className="block mb-2 font-medium text-gray-900 text-sm"
+            >
+              Email
+            </label>
             <input
               type="email"
               id="email"
@@ -185,12 +206,14 @@ const Profile = () => {
               value={formData.email}
               onChange={handleChange}
               disabled={true}
+              className={inputClass}
             />
           </div>
 
-          <div className="profile-info">
-            <p>
-              <strong>📅 Member since:</strong>{" "}
+          {/* profile-info */}
+          <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
+            <p className="my-2 text-gray-500 text-sm">
+              <strong className="text-gray-900">📅 Member since:</strong>{" "}
               {formatDisplayDate(user?.created_at)}
             </p>
           </div>
@@ -198,26 +221,22 @@ const Profile = () => {
           {!isEditing ? (
             <button
               type="button"
-              className="btn btn-primary btn-block"
               onClick={() => setIsEditing(true)}
+              className={`${btnPrimary} w-full`}
             >
               ✏️ Edit Profile
             </button>
           ) : (
-            <div className="form-actions">
+            <div className="flex gap-4 justify-end mt-6">
               <button
                 type="button"
-                className="btn btn-secondary"
                 onClick={handleCancel}
                 disabled={loading}
+                className={btnSecondary}
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
+              <button type="submit" disabled={loading} className={btnPrimary}>
                 {loading ? "Saving..." : "✓ Save Changes"}
               </button>
             </div>
@@ -225,20 +244,29 @@ const Profile = () => {
         </form>
       </div>
 
-      <div className="profile-card">
-        <h2>🔒 Security</h2>
+      {/* profile-card — Security */}
+      <div className="bg-white p-8 rounded-2xl shadow-md md:p-6">
+        <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+          🔒 Security
+        </h2>
 
         {!showPasswordForm ? (
           <button
-            className="btn btn-secondary"
             onClick={() => setShowPasswordForm(true)}
+            className={btnSecondary}
           >
             🔑 Change Password
           </button>
         ) : (
           <form onSubmit={handlePasswordSubmit}>
-            <div className="form-group">
-              <label htmlFor="current_password">Current Password</label>
+            {/* Current Password */}
+            <div className="mb-5">
+              <label
+                htmlFor="current_password"
+                className="block mb-2 font-medium text-gray-900 text-sm"
+              >
+                Current Password
+              </label>
               <input
                 type="password"
                 id="current_password"
@@ -247,11 +275,18 @@ const Profile = () => {
                 onChange={handlePasswordChange}
                 required
                 disabled={loading}
+                className={inputClass}
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="new_password">New Password</label>
+            {/* New Password */}
+            <div className="mb-5">
+              <label
+                htmlFor="new_password"
+                className="block mb-2 font-medium text-gray-900 text-sm"
+              >
+                New Password
+              </label>
               <input
                 type="password"
                 id="new_password"
@@ -261,11 +296,18 @@ const Profile = () => {
                 required
                 disabled={loading}
                 placeholder="Min 8 characters"
+                className={inputClass}
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="confirm_password">Confirm New Password</label>
+            {/* Confirm Password */}
+            <div className="mb-5">
+              <label
+                htmlFor="confirm_password"
+                className="block mb-2 font-medium text-gray-900 text-sm"
+              >
+                Confirm New Password
+              </label>
               <input
                 type="password"
                 id="confirm_password"
@@ -274,13 +316,13 @@ const Profile = () => {
                 onChange={handlePasswordChange}
                 required
                 disabled={loading}
+                className={inputClass}
               />
             </div>
 
-            <div className="form-actions">
+            <div className="flex gap-4 justify-end mt-6">
               <button
                 type="button"
-                className="btn btn-secondary"
                 onClick={() => {
                   setShowPasswordForm(false);
                   setPasswordData({
@@ -290,14 +332,11 @@ const Profile = () => {
                   });
                 }}
                 disabled={loading}
+                className={btnSecondary}
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
+              <button type="submit" disabled={loading} className={btnPrimary}>
                 {loading ? "Updating..." : "✓ Update Password"}
               </button>
             </div>

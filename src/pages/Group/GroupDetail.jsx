@@ -1,320 +1,390 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { groupAPI, taskAPI } from "../../services/api";
+import { formatDisplayDateTime, toUTCISOString } from "../../utils/dateUtils";
+import { useNotification } from "../../context/NotificationContext";
+import TaskList from "../../components/Task/TaskList";
+import TaskOverview from "../../components/Task/TaskOverview";
+import Loading from "../../components/Loading/Loading";
+import ErrorStatePage from "../../components/PageError/ErrorStatePage";
+import InviteModal from "../../components/Group/InviteModal";
 
-const GROUP = {
-  id: 1,
-  name: "GK 1 U",
-  createdAt: "Jan 2026",
-  description: "Frontend team for Project GK",
+const getInitials = (name = "") =>
+  name
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
+
+const getAvatarColor = (name = "") => {
+  const colors = [
+    "bg-indigo-500",
+    "bg-emerald-500",
+    "bg-orange-400",
+    "bg-pink-500",
+    "bg-violet-500",
+    "bg-cyan-500",
+    "bg-rose-500",
+    "bg-amber-500",
+    "bg-teal-500",
+  ];
+  const index = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return colors[index % colors.length];
 };
-
-const MEMBERS = [
-  {
-    id: 1,
-    initials: "AG",
-    name: "Account G",
-    role: "admin@gmail.com",
-    isAdmin: true,
-    color: "bg-indigo-600",
-  },
-  {
-    id: 2,
-    initials: "RD",
-    name: "Rendra D",
-    role: "rendra@gmail.com",
-    isAdmin: false,
-    color: "bg-emerald-500",
-  },
-  {
-    id: 3,
-    initials: "MA",
-    name: "Maya A",
-    role: "maya@gmail.com",
-    isAdmin: false,
-    color: "bg-orange-400",
-  },
-  {
-    id: 4,
-    initials: "SL",
-    name: "Sela L",
-    role: "sela@gmail.com",
-    isAdmin: false,
-    color: "bg-pink-500",
-  },
-];
-
-const TASKS = [
-  {
-    id: 1,
-    name: "task 1 uuu",
-    desc: "desc update",
-    status: "In Progress",
-    due: null,
-    assignee: { initials: "AG", color: "bg-indigo-600" },
-  },
-  {
-    id: 2,
-    name: "task 3 Update",
-    desc: "desc u again",
-    status: "In Progress",
-    due: "26 Feb 2026, 07.00",
-    assignee: { initials: "RD", color: "bg-emerald-500" },
-  },
-  {
-    id: 3,
-    name: "task baru terakhir niiii....",
-    desc: "last",
-    status: "Done",
-    due: "28 Feb 2026, 19.00",
-    assignee: { initials: "MA", color: "bg-orange-400" },
-  },
-  {
-    id: 4,
-    name: "Setup CI/CD pipeline",
-    desc: "configure github actions",
-    status: "To Do",
-    due: "05 Mar 2026, 10.00",
-    assignee: { initials: "SL", color: "bg-pink-500" },
-  },
-];
-
-// Status badge classes
-const getStatusBadge = (status) => {
-  const base =
-    "px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1";
-  if (status === "In Progress") return `${base} bg-amber-50 text-amber-600`;
-  if (status === "Done") return `${base} bg-green-50 text-green-700`;
-  return `${base} bg-indigo-50 text-indigo-600`;
-};
-
-const statusIcon = (status) => {
-  if (status === "In Progress") return "⏳";
-  if (status === "Done") return "✅";
-  return "📋";
-};
-
-// Filter pill classes
-const pillClass = (active) =>
-  `px-[14px] py-[5px] rounded-full text-xs font-semibold cursor-pointer border-none transition-all duration-200 ${
-    active
-      ? "bg-[#5b4fcf] text-white"
-      : "bg-[#f0f2f5] text-gray-600 hover:bg-[#e0ddf8] hover:text-[#5b4fcf]"
-  }`;
 
 const GroupDetail = () => {
-  const [filter, setFilter] = useState("All");
-  const [tasks] = useState(TASKS);
-  const [members] = useState(MEMBERS);
+  const { user } = useAuth();
+  const { groupId } = useParams();
+  const [group, setGroup] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { showNotification } = useNotification();
+  const [showInvite, setShowInvite] = useState(false);
+  const admin = members.find((m) => m.role === "admin");
+  const isAdmin = members.find((m) => m.id === user?.id)?.role === "admin";
+  const isMember = members.find((m) => m.id === user?.id);
+  const pendingMembers = members.filter((m) => m.role === "pending");
+  const activeMembers = members.filter((m) => m.role !== "pending");
+  const sortedMembers = [...activeMembers].sort((a, b) => {
+    if (a.role === "admin") return -1;
+    if (b.role === "admin") return 1;
+    return 0;
+  });
 
-  const totalTasks = tasks.length;
-  const todoCnt = tasks.filter((t) => t.status === "To Do").length;
-  const inProgressCnt = tasks.filter((t) => t.status === "In Progress").length;
-  const doneCnt = tasks.filter((t) => t.status === "Done").length;
+  useEffect(() => {
+    fetchGroupData();
+  }, [groupId]);
 
-  const filteredTasks =
-    filter === "All" ? tasks : tasks.filter((t) => t.status === filter);
+  const fetchGroupData = async () => {
+    try {
+      setLoading(true);
+      const [groupRes, tasksRes] = await Promise.all([
+        groupAPI.getGroup(groupId),
+        groupAPI.getGroupTasks(groupId),
+      ]);
+      setGroup(groupRes);
+      setMembers(groupRes.members || []);
+      setTasks(tasksRes || []);
+    } catch (error) {
+      console.error("Error fetching group data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update status inline — sama seperti Dashboard tapi pakai groupAPI
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await taskAPI.updateStatus(taskId, newStatus);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
+      );
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Status updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      showNotification({
+        open: true,
+        type: "error",
+        message: "Status update failed",
+      });
+    }
+  };
+
+  // Save task setelah edit di TaskModal
+  const handleSaveTask = async (updatedTask) => {
+    try {
+      await taskAPI.updateTask(updatedTask.id, updatedTask);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
+      );
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Task updated successfully",
+      });
+    } catch (error) {
+      console.error("Error saving task:", error);
+      showNotification({
+        open: true,
+        type: "error",
+        message: error?.description?.message || "Task update failed",
+      });
+    }
+  };
+
+  // Delete task dari TaskModal
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await taskAPI.deleteTask(taskId);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Task deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      showNotification({
+        open: true,
+        type: "error",
+        message: error?.description?.message || "Failed to delete task",
+      });
+    }
+  };
+
+  // Handle create task from TaskModal
+  const handleCreateTask = async (newTask) => {
+    try {
+      const dataToSend = {
+        ...newTask,
+        group_id: groupId, // ← pastikan group_id dari useParams
+        due_date: newTask.due_date ? toUTCISOString(newTask.due_date) : null,
+      };
+      const created = await taskAPI.createTask(dataToSend);
+      setTasks((prev) => [...prev, created]);
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Task created successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      showNotification({
+        open: true,
+        type: "error",
+        message: error?.description?.message || "Failed to create task",
+      });
+    }
+  };
+
+  const handleApprove = async (userId) => {
+    try {
+      await groupAPI.approveMember(groupId, userId);
+      // Update local state — pindah dari pending ke member
+      setMembers((prev) =>
+        prev.map((m) => (m.id === userId ? { ...m, role: "member" } : m)),
+      );
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Member approved",
+      });
+    } catch (error) {
+      console.error(error);
+      showNotification({
+        open: true,
+        type: "error",
+        message: "Failed to approve member",
+      });
+    }
+  };
+
+  // Sementara pakai handler kosong dulu sampai BE ready
+  const handleReject = async (userId) => {
+    try {
+      await groupAPI.approveMember(groupId, userId, false); // ← sesuaikan endpoint
+      setMembers((prev) => prev.filter((m) => m.id !== userId));
+      showNotification({
+        open: true,
+        type: "success",
+        message: "Member rejected",
+      });
+    } catch (error) {
+      showNotification({
+        open: true,
+        type: "error",
+        message: "Failed to reject member",
+      });
+    }
+  };
+
+  if (loading) return <Loading text="Loading group..." />;
+  if (!group) return null;
+  if (!loading && !isMember)
+    return (
+      <ErrorStatePage
+        type="forbidden"
+        description="You are not part of this group"
+      />
+    );
 
   return (
     <>
-      {/* group-detail */}
-      <div className="p-10 bg-[#f8fafc] min-h-screen md:p-5">
-        {/* Back Button */}
-        <button
-          onClick={() => window.history.back()}
-          className="inline-flex items-center gap-1.5 text-[0.88rem] text-[#5b4fcf] font-medium mb-5 bg-transparent border-none cursor-pointer p-0 transition-opacity hover:opacity-75"
-        >
-          ← Back to Dashboard
-        </button>
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 py-8">
+          {/* Back */}
+          <button
+            onClick={() => window.history.back()}
+            className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition mb-6 cursor-pointer"
+          >
+            ← Back to Dashboard
+          </button>
 
-        {/* ── Group Header Card ── */}
-        <div className="bg-white rounded-2xl px-8 py-7 flex items-center justify-between mb-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] md:flex-col md:items-start md:gap-4">
-          <div className="flex items-center gap-[18px]">
-            <div className="w-14 h-14 rounded-[14px] bg-[#ede9ff] flex items-center justify-center text-[1.6rem]">
-              👥
-            </div>
-            <div>
-              <div className="text-[1.6rem] font-bold text-[#1a1a2e] leading-tight">
-                {GROUP.name}
+          {/* ── Group Header ── */}
+          <div className="bg-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm border border-slate-100 mb-8">
+            <div className="flex items-center gap-4">
+              <div
+                className={`w-14 h-14 rounded-xl ${getAvatarColor(group.name)} text-white flex items-center justify-center text-xl font-bold`}
+              >
+                {getInitials(group.name)}
               </div>
-              <div className="text-sm text-gray-400 mt-1">
-                Created {GROUP.createdAt} &nbsp;·&nbsp; {members.length} members
-              </div>
-              <div className="text-sm text-gray-400 mt-0.5">
-                {GROUP.description}
-              </div>
-            </div>
-          </div>
-
-          {/* Header Actions */}
-          <div className="flex gap-2.5 md:w-full md:flex-wrap">
-            <button className="px-[18px] py-2 bg-gradient-to-br from-indigo-400 to-indigo-600 text-white rounded-[10px] border-none text-[0.88rem] font-semibold cursor-pointer hover:opacity-90 transition-opacity">
-              + Add Task
-            </button>
-            <button className="px-[18px] py-2 bg-transparent text-[#5b4fcf] border-[1.5px] border-[#5b4fcf] rounded-[10px] text-[0.88rem] font-semibold cursor-pointer transition-all hover:bg-[#ede9ff]">
-              ✉ Invite Member
-            </button>
-            <button className="px-[18px] py-2 bg-transparent text-red-600 border-[1.5px] border-red-500 rounded-[10px] text-[0.88rem] font-semibold cursor-pointer transition-all hover:bg-red-50">
-              Leave Group
-            </button>
-          </div>
-        </div>
-
-        {/* ── Stats Row ── */}
-        <div className="grid grid-cols-4 gap-4 mb-7 md:grid-cols-2">
-          {[
-            {
-              icon: "📋",
-              value: totalTasks,
-              label: "Total Tasks",
-              border: "border-t-[#5b4fcf]",
-            },
-            {
-              icon: "⏱",
-              value: todoCnt,
-              label: "To Do",
-              border: "border-t-orange-400",
-            },
-            {
-              icon: "🔄",
-              value: inProgressCnt,
-              label: "In Progress",
-              border: "border-t-yellow-400",
-            },
-            {
-              icon: "✅",
-              value: doneCnt,
-              label: "Completed",
-              border: "border-t-green-500",
-            },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className={`bg-white rounded-[14px] px-6 py-5 flex flex-col items-center shadow-[0_2px_8px_rgba(0,0,0,0.05)] border-t-[3px] ${s.border}`}
-            >
-              <div className="text-2xl mb-1.5">{s.icon}</div>
-              <div className="text-[2rem] font-extrabold text-[#1a1a2e] leading-none">
-                {s.value}
-              </div>
-              <div className="text-[0.78rem] text-gray-400 mt-1">{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Main Grid ── */}
-        <div className="grid grid-cols-[1fr_320px] gap-6 items-start lg:grid-cols-1">
-          {/* ── Tasks Section ── */}
-          <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
-            {/* Section Header */}
-            <div className="flex items-center justify-between mb-[18px]">
-              <div className="text-[1.05rem] font-bold text-[#1a1a2e]">
-                Group Tasks
-              </div>
-              <div className="flex gap-2">
-                {["All", "To Do", "In Progress", "Done"].map((f) => (
-                  <button
-                    key={f}
-                    className={pillClass(filter === f)}
-                    onClick={() => setFilter(f)}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Task List */}
-            <div className="flex flex-col gap-3">
-              {filteredTasks.length === 0 ? (
-                <div className="text-center py-10 text-gray-300">
-                  <div className="text-4xl mb-2.5">📭</div>
-                  <p className="text-[0.88rem]">
-                    No tasks found for this filter.
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">
+                  {group.name}
+                </h1>
+                <p className="text-sm text-slate-500 mt-1">
+                  Created by {admin?.full_name} · {activeMembers?.length || 0}{" "}
+                  {activeMembers?.length === 1 ? "member" : "members"}
+                </p>
+                {group.description && (
+                  <p className="text-sm text-slate-400 mt-1">
+                    {group.description}
                   </p>
-                </div>
-              ) : (
-                filteredTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="border-[1.5px] border-[#f0f0f0] rounded-xl px-[18px] py-4 flex items-start justify-between gap-3 cursor-pointer transition-all duration-200 hover:border-[#d4cef7] hover:shadow-[0_2px_8px_rgba(91,79,207,0.08)]"
-                  >
-                    <div className="flex flex-col gap-1 flex-1">
-                      <div className="text-[0.95rem] font-semibold text-[#1a1a2e]">
-                        {task.name}
-                      </div>
-                      <div className="text-[0.82rem] text-gray-400">
-                        {task.desc}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        {/* Assignee */}
-                        <div className="flex items-center gap-1.5 text-[0.78rem] text-gray-500">
-                          <div
-                            className={`w-5 h-5 rounded-full ${task.assignee.color} text-white text-[0.6rem] font-bold flex items-center justify-center`}
-                          >
-                            {task.assignee.initials}
-                          </div>
-                          {task.assignee.initials}
-                        </div>
-                        {/* Due date */}
-                        {task.due && (
-                          <div className="text-[0.78rem] text-gray-400 flex items-center gap-1">
-                            📅 {task.due}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <span className={getStatusBadge(task.status)}>
-                      {statusIcon(task.status)} {task.status}
-                    </span>
-                  </div>
-                ))
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {!isAdmin && (
+                <button className="px-4 py-2 border border-red-500 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition">
+                  Leave Group
+                </button>
               )}
             </div>
           </div>
 
-          {/* ── Members Section ── */}
-          <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
-            <div className="flex items-center justify-between mb-[18px]">
-              <div className="text-[1.05rem] font-bold text-[#1a1a2e]">
-                Members ({members.length})
-              </div>
+          {/* ── Stats ── */}
+          <TaskOverview tasks={tasks} />
+
+          {/* ── Main Grid ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* ── Tasks ── */}
+            <div className="lg:col-span-2">
+              <TaskList
+                tasks={tasks}
+                members={activeMembers}
+                title="Group Tasks"
+                showFilter={true}
+                onStatusChange={handleStatusChange} // ← select box aktif
+                onSaveTask={handleSaveTask} // ← edit task via modal
+                onCreateTask={handleCreateTask} // ← create task via modal
+                onDeleteTask={handleDeleteTask} // ← delete task via modal
+                formatDate={formatDisplayDateTime}
+              />
             </div>
 
-            <div className="flex flex-col gap-3">
-              {members.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between px-[14px] py-3 rounded-xl border-[1.5px] border-[#f0f0f0] transition-colors hover:border-[#d4cef7]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-[38px] h-[38px] rounded-full ${m.color} text-white text-[0.85rem] font-bold flex items-center justify-center flex-shrink-0`}
-                    >
-                      {m.initials}
-                    </div>
-                    <div>
-                      <div className="text-[0.9rem] font-semibold text-[#1a1a2e]">
-                        {m.name}
+            {/* ── Members ── */}
+            <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 self-start">
+              <h2 className="text-lg font-semibold text-slate-900 mb-6">
+                Members ({activeMembers.length})
+              </h2>
+              {/* Pending Requests — hanya tampil untuk admin */}
+              {isAdmin && pendingMembers.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                    Pending Requests ({pendingMembers.length})
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {pendingMembers.map((m) => (
+                      <div
+                        key={m.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-100"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-9 h-9 rounded-full ${getAvatarColor(m.full_name)} text-white flex items-center justify-center text-sm font-bold`}
+                          >
+                            {getInitials(m.full_name)}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-slate-900">
+                              {m.full_name}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              @{m.username}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReject(m.id)}
+                            className="px-3 py-1 border border-red-200 text-red-500 text-xs font-semibold rounded-lg hover:bg-red-50 transition cursor-pointer"
+                          >
+                            ✕
+                          </button>
+                          <button
+                            onClick={() => handleApprove(m.id)}
+                            className="px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition cursor-pointer"
+                          >
+                            ✓ Approve
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-[0.75rem] text-gray-400 mt-px">
-                        {m.role}
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                  {m.isAdmin && (
-                    <span className="bg-[#ede9ff] text-[#5b4fcf] text-[0.7rem] font-bold px-[9px] py-[3px] rounded-full">
-                      Admin
-                    </span>
-                  )}
+                  <div className="border-t border-slate-100 my-4" />
                 </div>
-              ))}
-            </div>
+              )}
+              <div className="flex flex-col gap-4">
+                {sortedMembers.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 hover:border-indigo-200 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-9 h-9 rounded-full ${getAvatarColor(m.full_name || "")} text-white flex items-center justify-center text-sm font-bold`}
+                      >
+                        {getInitials(m.full_name || "?")}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">
+                          {m.name || m.full_name}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {m.role || m.email}
+                        </div>
+                      </div>
+                    </div>
 
-            {/* Invite Button */}
-            <button className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[10px] border-[1.5px] border-dashed border-[#c4b9f5] text-[#5b4fcf] text-[0.85rem] font-semibold bg-transparent cursor-pointer mt-[14px] transition-colors hover:bg-[#ede9ff]">
-              + Invite Member
-            </button>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        m.role === "admin"
+                          ? "bg-indigo-50 text-indigo-600"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {m.role === "admin" ? "Admin" : "Member"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {isAdmin && (
+                <button
+                  onClick={() => setShowInvite(true)}
+                  className="w-full mt-6 py-2.5 border border-dashed border-indigo-300 text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition"
+                >
+                  + Invite Member
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showInvite && (
+        <InviteModal groupId={groupId} onClose={() => setShowInvite(false)} />
+      )}
     </>
   );
 };

@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
@@ -12,7 +13,7 @@ import Loading from "./components/Loading/Loading";
 import SignIn from "./pages/Auth/SignIn";
 import SignUp from "./pages/Auth/SignUp";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import AddTask from "./pages/Tasks/AddTask";
+// import AddTask from "./pages/Tasks/AddTask";
 import Profile from "./pages/Profile/Profile";
 import JoinGroup from "./pages/Group/JoinGroup";
 import GroupDetail from "./pages/Group/GroupDetail";
@@ -20,10 +21,15 @@ import GroupDetail from "./pages/Group/GroupDetail";
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+  const location = useLocation(); // ← tambahkan
 
   if (loading) return <Loading />;
 
-  return isAuthenticated ? children : <Navigate to="/signin" />;
+  return isAuthenticated ? (
+    children
+  ) : (
+    <Navigate to={`/signin?redirect=${location.pathname}`} replace />
+  );
 };
 
 // Public Route Component (redirect to dashboard if already authenticated)
@@ -73,9 +79,8 @@ function AppRoutes() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="tasks/new" element={<AddTask />} />
+        {/* <Route path="tasks/new" element={<AddTask />} /> */}
         <Route path="profile" element={<Profile />} />
-        <Route path="groups/join" element={<JoinGroup />} />
       </Route>
 
       {/* Protected Routes - TANPA navbar (tanpa Layout) */}
@@ -84,6 +89,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <GroupDetail />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/join/:token"
+        element={
+          <ProtectedRoute>
+            <JoinGroup />
           </ProtectedRoute>
         }
       />

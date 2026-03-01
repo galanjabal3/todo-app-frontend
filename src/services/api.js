@@ -71,15 +71,19 @@ export const taskAPI = {
 
 // Group APIs
 export const groupAPI = {
-  getMyGroups: () => api.get("/user/my_groups"),
+  getMyGroups: () => api.get("/user/groups/me"),
   getGroups: () => api.get("/user/groups"),
-  getGroup: (id) => api.get(`/user/groups/${id}`),
+  getGroup: (groupId) => api.get(`/user/groups/${groupId}`),
   createGroup: (data) => api.post("/user/groups", data),
-  updateGroup: (id, data) => api.put(`/user/groups/${id}`, data),
-  deleteGroup: (id) => api.delete(`/user/groups/${id}`),
-  joinGroup: (code) => api.post("/groups/join", { code }),
-  getMembers: (groupId) => api.get(`/groups/${groupId}/members`),
-  getInviteCode: (groupId) => api.get(`/groups/${groupId}/invite-code`),
+  getGroupTasks: (groupId) => api.get(`/user/groups/${groupId}/tasks`),
+  updateGroup: (groupId, data) => api.put(`/user/groups/${groupId}`, data),
+  deleteGroup: (groupId) => api.delete(`/user/groups/${groupId}`),
+  // Invite Member, Join Group & Approve
+  inviteMember: (groupId) => api.get(`/user/groups/${groupId}/invite`),
+  approveMember: (groupId, userId, approve = true) =>
+    api.post(`/user/groups/${groupId}/approve`, { user_id: userId, approve }),
+  joinGroup: (token) => api.post("/user/groups/join", { token }),
+  previewGroup: (token) => api.get(`/user/groups/preview/${token}`),
 };
 
 export default api;

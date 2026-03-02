@@ -12,7 +12,7 @@ const btnPrimary =
   "px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold cursor-pointer transition-all hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2";
 
 const btnSecondary =
-  "px-5 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg text-sm font-medium cursor-pointer transition-all hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed";
+  "px-5 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg text-sm font-medium cursor-pointer transition-all hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2";
 
 const getInitials = (name = "") =>
   name
@@ -236,7 +236,20 @@ const Profile = () => {
                   onClick={() => setIsEditing(true)}
                   className={`${btnPrimary} mt-2`}
                 >
-                  ✏️ Edit Profile
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Edit Profile
                 </button>
               ) : (
                 <div className="flex gap-3 justify-end mt-6">
@@ -312,7 +325,20 @@ const Profile = () => {
               onClick={() => setShowPasswordForm(true)}
               className={btnSecondary}
             >
-              🔑 Change Password
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                />
+              </svg>
+              Change Password
             </button>
           ) : (
             <form onSubmit={handlePasswordSubmit}>

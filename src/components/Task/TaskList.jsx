@@ -49,12 +49,11 @@ const normalizeTask = (task, groups = [], formatDate) => {
   const isDashboard = "title" in task;
   const status = NORMALIZE_STATUS[task.status] || "To Do";
 
-  let due = null;
-  if (isDashboard && task.due_date) {
-    due = formatDate ? formatDate(task.due_date) : task.due_date;
-  } else if (!isDashboard && task.due) {
-    due = task.due;
-  }
+  const due = task.due_date
+    ? formatDate
+      ? formatDate(task.due_date)
+      : task.due_date
+    : null;
 
   let groupLabel = null;
   if (isDashboard && task.group_id) {

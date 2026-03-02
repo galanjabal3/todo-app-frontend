@@ -2,10 +2,14 @@
 export const toUTCISOString = (localDateTime) => {
   if (!localDateTime) return null;
 
-  // datetime-local dianggap waktu lokal user
-  const date = new Date(localDateTime);
+  // Sudah ISO string dari DB — jangan convert lagi
+  if (localDateTime.endsWith("Z") || localDateTime.includes("+")) {
+    return localDateTime;
+  }
 
-  return date.toISOString(); // selalu UTC
+  // datetime-local format "2026-03-07T20:00" — convert ke UTC
+  const date = new Date(localDateTime);
+  return date.toISOString();
 };
 
 // Convert ISO (dari BE) → format untuk <input type="datetime-local">

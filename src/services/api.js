@@ -67,6 +67,20 @@ export const taskAPI = {
   updateTask: (id, data) => api.put(`/user/tasks/${id}`, data),
   deleteTask: (id) => api.delete(`/user/tasks/${id}`),
   updateStatus: (id, status) => api.patch(`/user/tasks/${id}`, { status }),
+
+  // Attachments
+  uploadAttachment: (taskId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post(`/user/tasks/${taskId}/attachments`, formData, {
+      headers: {
+        // Override Content-Type agar axios set multipart boundary otomatis
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  deleteAttachment: (taskId, attachmentId) =>
+    api.delete(`/user/tasks/${taskId}/attachments/${attachmentId}`),
 };
 
 // Group APIs

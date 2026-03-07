@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { toUTCISOString, toInputDateTime } from "../../utils/dateUtils";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
 import { useNotification } from "../../context/NotificationContext";
+import TaskAttachments from "./TaskAttachments";
 
 const inputClass =
   "w-full px-3 py-[0.6rem] border border-gray-200 rounded-lg text-[0.9rem] transition-all duration-200 bg-white focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-100 disabled:cursor-default";
@@ -43,7 +44,7 @@ const Avatar = ({ full_name, size = "sm" }) => {
 };
 
 const Field = ({ label, required, children }) => (
-  <div className="mb-5">
+  <div>
     <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
       {label}
       {required && <span className="text-red-400 ml-1">*</span>}
@@ -61,7 +62,7 @@ const TaskModal = ({
   onSave,
   onDelete,
   isCreating = false,
-  members = [], // ← array member dari group
+  members = [],
 }) => {
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
@@ -81,7 +82,6 @@ const TaskModal = ({
 
   const handleSave = async () => {
     setSubmitted(true);
-
     if (!task.title?.trim()) {
       showNotification({
         open: true,
@@ -125,11 +125,11 @@ const TaskModal = ({
         onClick={onClose}
       >
         <div
-          className="w-full max-w-[680px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease]"
+          className="w-full max-w-[680px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease] max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* ── Colored header bar ── */}
-          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-5 flex justify-between items-center">
+          {/* ── Header — fixed, tidak scroll ── */}
+          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-5 flex justify-between items-center flex-shrink-0">
             <div>
               <p className="text-indigo-200 text-xs font-medium uppercase tracking-widest mb-0.5">
                 {isCreating ? "New Task" : editing ? "Editing" : "Task Details"}
@@ -182,138 +182,157 @@ const TaskModal = ({
             </button>
           </div>
 
-          {/* ── Body ── */}
-          <div className="p-8">
-            {/* Title */}
-            <Field label="Task Title" required>
-              <input
-                type="text"
-                value={task.title || ""}
-                disabled={!editing}
-                placeholder="Enter task title..."
-                onChange={(e) => setTask({ ...task, title: e.target.value })}
-                className={`${inputClass} ${submitted && !task.title?.trim() ? "border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_rgba(248,113,113,0.1)]" : ""}`}
-              />
-              {submitted && !task.title?.trim() && (
-                <p className="text-xs text-red-400 mt-1">Title is required</p>
-              )}
-            </Field>
-
-            {/* Description */}
-            <Field label="Description">
-              <textarea
-                rows="3"
-                value={task.description || ""}
-                disabled={!editing}
-                placeholder="Add a description..."
-                onChange={(e) =>
-                  setTask({ ...task, description: e.target.value })
-                }
-                className={`${inputClass} resize-none`}
-              />
-            </Field>
-
-            {/* Due Date + Status */}
-            <div className="grid grid-cols-2 gap-4 mb-5">
-              <Field label="Due Date">
+          {/* ── Body — scrollable ── */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Fields */}
+            <div className="px-6 py-5 space-y-5">
+              {/* Title */}
+              <Field label="Task Title" required>
                 <input
-                  type="datetime-local"
-                  value={toInputDateTime(task.due_date)}
+                  type="text"
+                  value={task.title || ""}
                   disabled={!editing}
-                  onChange={(e) =>
-                    setTask({
-                      ...task,
-                      due_date: e.target.value === "" ? null : e.target.value,
-                    })
-                  }
-                  className={inputClass}
+                  placeholder="Enter task title..."
+                  onChange={(e) => setTask({ ...task, title: e.target.value })}
+                  className={`${inputClass} ${
+                    submitted && !task.title?.trim()
+                      ? "border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_rgba(248,113,113,0.1)]"
+                      : ""
+                  }`}
                 />
-              </Field>
-              <Field label="Status">
-                <select
-                  value={task.status || "todo"}
-                  disabled={!editing}
-                  onChange={(e) => setTask({ ...task, status: e.target.value })}
-                  className={inputClass}
-                >
-                  <option value="todo">📋 To Do</option>
-                  <option value="in progress">⏳ In Progress</option>
-                  <option value="done">✅ Done</option>
-                </select>
-              </Field>
-            </div>
-
-            {/* Assign To — hanya tampil jika members tersedia */}
-            {members.length > 0 ? (
-              <Field label="Assigned To">
-                {editing ? (
-                  <select
-                    value={
-                      task.assigned_to_id !== undefined
-                        ? (task.assigned_to_id ?? "")
-                        : (task.assigned_to?.id ?? "")
-                    }
-                    onChange={(e) => {
-                      const selectedMember =
-                        members.find((m) => m.id === e.target.value) || null;
-                      setTask({
-                        ...task,
-                        assigned_to_id:
-                          e.target.value === "" ? null : e.target.value,
-                        assigned_to: selectedMember, // update assigned_to ke member yang dipilih
-                      });
-                    }}
-                    className={inputClass}
-                  >
-                    <option value="">— Unassigned —</option>
-                    {members.filter(Boolean).map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.full_name} ({m.username})
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                    {assignedMember ? (
-                      <>
-                        <Avatar full_name={assignedMember.full_name} />
-                        <div>
-                          <p className="text-sm font-medium text-gray-800 leading-none">
-                            {assignedMember.full_name}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            @{assignedMember.username}
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-sm text-gray-400 italic">
-                        Unassigned
-                      </span>
-                    )}
-                  </div>
+                {submitted && !task.title?.trim() && (
+                  <p className="text-xs text-red-400 mt-1">Title is required</p>
                 )}
               </Field>
-            ) : task.assigned_to ? (
-              // Dashboard — tidak ada members, tampil assigned_to dari task langsung (read-only)
-              <Field label="Assigned To">
-                <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                  <Avatar full_name={task.assigned_to.full_name} />
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 leading-none">
-                      {task.assigned_to.full_name}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      @{task.assigned_to.username}
-                    </p>
-                  </div>
-                </div>
+
+              {/* Description */}
+              <Field label="Description">
+                <textarea
+                  rows="3"
+                  value={task.description || ""}
+                  disabled={!editing}
+                  placeholder="Add a description..."
+                  onChange={(e) =>
+                    setTask({ ...task, description: e.target.value })
+                  }
+                  className={`${inputClass} resize-none`}
+                />
               </Field>
-            ) : null}
+
+              {/* Due Date + Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Due Date">
+                  <input
+                    type="datetime-local"
+                    value={toInputDateTime(task.due_date)}
+                    disabled={!editing}
+                    onChange={(e) =>
+                      setTask({
+                        ...task,
+                        due_date: e.target.value === "" ? null : e.target.value,
+                      })
+                    }
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Status">
+                  <select
+                    value={task.status || "todo"}
+                    disabled={!editing}
+                    onChange={(e) =>
+                      setTask({ ...task, status: e.target.value })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="todo">📋 To Do</option>
+                    <option value="in progress">⏳ In Progress</option>
+                    <option value="done">✅ Done</option>
+                  </select>
+                </Field>
+              </div>
+
+              {/* Assigned To */}
+              {members.length > 0 ? (
+                <Field label="Assigned To">
+                  {editing ? (
+                    <select
+                      value={
+                        task.assigned_to_id !== undefined
+                          ? (task.assigned_to_id ?? "")
+                          : (task.assigned_to?.id ?? "")
+                      }
+                      onChange={(e) => {
+                        const selectedMember =
+                          members.find((m) => m.id === e.target.value) || null;
+                        setTask({
+                          ...task,
+                          assigned_to_id:
+                            e.target.value === "" ? null : e.target.value,
+                          assigned_to: selectedMember,
+                        });
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="">— Unassigned —</option>
+                      {members.filter(Boolean).map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.full_name} ({m.username})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                      {assignedMember ? (
+                        <>
+                          <Avatar full_name={assignedMember.full_name} />
+                          <div>
+                            <p className="text-sm font-medium text-gray-800 leading-none">
+                              {assignedMember.full_name}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              @{assignedMember.username}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">
+                          Unassigned
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </Field>
+              ) : task.assigned_to ? (
+                <Field label="Assigned To">
+                  <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                    <Avatar full_name={task.assigned_to.full_name} />
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 leading-none">
+                        {task.assigned_to.full_name}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        @{task.assigned_to.username}
+                      </p>
+                    </div>
+                  </div>
+                </Field>
+              ) : null}
+            </div>
+
+            {/* Attachments — di bawah fields, dengan separator */}
+            {!isCreating && task?.id && (
+              <div className="px-6 pb-6 pt-4 border-t border-slate-100">
+                <TaskAttachments
+                  task={task}
+                  onTaskUpdate={(updated) => setTask(updated)}
+                  canEdit={editing}
+                />
+              </div>
+            )}
           </div>
 
-          {/* ── Footer ── */}
-          <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+          {/* ── Footer — fixed, tidak scroll ── */}
+          <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
             {/* Left: Delete */}
             <div>
               {!isCreating && onDelete && !editing && (

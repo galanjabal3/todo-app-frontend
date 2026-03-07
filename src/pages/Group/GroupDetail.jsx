@@ -49,6 +49,9 @@ const GroupDetail = () => {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showEditGroup, setShowEditGroup] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState(null);
+  const [removingMemberId, setRemovingMemberId] = useState(null);
   const [editGroupName, setEditGroupName] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -289,6 +292,23 @@ const GroupDetail = () => {
     }
   };
 
+  // Handler
+  const handleRemoveMember = async (memberId) => {
+    setRemovingMemberId(memberId);
+    try {
+      await groupAPI.removeMember(groupId, memberId);
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+      showNotification({ type: "success", message: "Member removed" });
+    } catch (error) {
+      showNotification({
+        type: "error",
+        message: error?.message || "Failed to remove member",
+      });
+    } finally {
+      setRemovingMemberId(null);
+    }
+  };
+
   if (loading) return <Loading text="Loading group..." />;
   if (!group) return null;
   if (!loading && !isMember)
@@ -488,15 +508,43 @@ const GroupDetail = () => {
                       </div>
                     </div>
 
-                    <span
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                        m.role === "admin"
-                          ? "bg-indigo-50 text-indigo-600"
-                          : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {m.role === "admin" ? "Admin" : "Member"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          m.role === "admin"
+                            ? "bg-indigo-50 text-indigo-600"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {m.role === "admin" ? "Admin" : "Member"}
+                      </span>
+
+                      {/* Remove button — admin only, tidak bisa remove diri sendiri */}
+                      {isAdmin && m.id !== user?.id && (
+                        <button
+                          onClick={() => {
+                            setMemberToRemove(m);
+                            setShowRemoveConfirm(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                          title="Remove member"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -771,6 +819,92 @@ const GroupDetail = () => {
                   </>
                 ) : (
                   "Leave Group"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRemoveConfirm && memberToRemove && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
+          onClick={() => setShowRemoveConfirm(false)}
+        >
+          <div
+            className="w-full max-w-[380px] bg-white rounded-2xl shadow-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 text-center mb-1">
+              Remove Member?
+            </h3>
+            <p className="text-sm text-slate-400 text-center mb-6">
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-slate-600">
+                {memberToRemove.full_name}
+              </span>{" "}
+              from this group?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowRemoveConfirm(false);
+                  setMemberToRemove(null);
+                }}
+                disabled={removingMemberId !== null}
+                className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-semibold hover:bg-slate-50 transition text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await handleRemoveMember(memberToRemove.id);
+                  setShowRemoveConfirm(false);
+                  setMemberToRemove(null);
+                }}
+                disabled={removingMemberId !== null}
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition text-sm flex items-center justify-center gap-2"
+              >
+                {removingMemberId ? (
+                  <>
+                    <svg
+                      className="animate-spin w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      />
+                    </svg>
+                    Removing...
+                  </>
+                ) : (
+                  "Remove"
                 )}
               </button>
             </div>

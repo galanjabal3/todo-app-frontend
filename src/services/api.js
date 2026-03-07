@@ -82,6 +82,8 @@ export const groupAPI = {
   inviteMember: (groupId) => api.get(`/user/groups/${groupId}/invite`),
   approveMember: (groupId, userId, approve = true) =>
     api.post(`/user/groups/${groupId}/approve`, { user_id: userId, approve }),
+  removeMember: (groupId, userId) =>
+    api.delete(`/user/groups/${groupId}/members/${userId}`),
   leaveGroup: (groupId) => api.delete(`/user/groups/${groupId}/leave`),
   joinGroup: (token) => api.post("/user/groups/join", { token }),
   previewGroup: (token) => api.get(`/user/groups/preview/${token}`),

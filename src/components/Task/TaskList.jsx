@@ -60,6 +60,10 @@ const normalizeTask = (task, groups = [], formatDate) => {
     const g = groups.find((g) => g.id === task.group_id);
     groupLabel = g?.name || "Group";
   }
+  const isOverdue =
+    task.due_date &&
+    NORMALIZE_STATUS[task.status] !== "Done" &&
+    new Date(task.due_date) < new Date();
 
   return {
     _raw: task,
@@ -69,6 +73,7 @@ const normalizeTask = (task, groups = [], formatDate) => {
     desc: isDashboard ? task.description : task.desc,
     status,
     due,
+    isOverdue,
     groupLabel,
     assigned_to: task.assigned_to || null,
   };
@@ -148,8 +153,13 @@ const StatusBadge = ({ status }) => {
 const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
   <div
     onClick={() => onTaskClick?.(normalized)}
-    className={`bg-white border border-slate-200 rounded-xl p-4
-      shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200
+    className={`bg-white border rounded-xl p-4
+      shadow-sm hover:shadow-md transition-all duration-200
+      ${
+        normalized.isOverdue
+          ? "border-red-200 hover:border-red-300"
+          : "border-slate-200 hover:border-indigo-300"
+      }
       ${onTaskClick ? "cursor-pointer" : ""}`}
   >
     {/* Row 1: Title + Status */}
@@ -177,7 +187,7 @@ const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
       </div>
     </div>
 
-    {/* Row 2: Avatar + Due date */}
+    {/* Row 2: Avatar + Due date — HANYA SATU, dengan overdue styling */}
     {(normalized.assigned_to || normalized.due) && (
       <div className="flex items-center gap-2 mt-3">
         {normalized.assigned_to && (
@@ -187,9 +197,12 @@ const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
           <span className="text-slate-300 text-xs">·</span>
         )}
         {normalized.due && (
-          <span className="bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap">
+          <span
+            className={`px-2 py-0.5 rounded-md flex items-center gap-1 text-xs whitespace-nowrap
+            ${normalized.isOverdue ? "bg-red-50 text-red-500" : "bg-slate-100 text-slate-500"}`}
+          >
             <svg
-              className="w-3 h-3 text-slate-400 flex-shrink-0"
+              className={`w-3 h-3 flex-shrink-0 ${normalized.isOverdue ? "text-red-400" : "text-slate-400"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -202,6 +215,9 @@ const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
               />
             </svg>
             {normalized.due}
+            {normalized.isOverdue && (
+              <span className="font-semibold">· Overdue</span>
+            )}
           </span>
         )}
       </div>
@@ -220,9 +236,16 @@ const TaskRow = ({ normalized, onTaskClick, onStatusChange }) => {
         ${onTaskClick ? "cursor-pointer hover:bg-slate-50 -mx-2 px-2 rounded-lg transition" : ""}`}
     >
       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
-      <span className="flex-1 text-sm font-medium text-slate-800 truncate">
+      <span
+        className={`flex-1 text-sm font-medium truncate ${normalized.isOverdue ? "text-red-600" : "text-slate-800"}`}
+      >
         {normalized.name}
       </span>
+      {normalized.isOverdue && (
+        <span className="text-xs text-red-400 font-medium flex-shrink-0">
+          Overdue
+        </span>
+      )}
       {normalized.assigned_to && (
         <AssigneeAvatar full_name={normalized.assigned_to.full_name} />
       )}
@@ -316,6 +339,7 @@ const TaskList = ({
 }) => {
   const [filter, setFilter] = useState("All");
   const [selectedNormalized, setSelectedNormalized] = useState(null);
+  const [search, setSearch] = useState("");
   const [editingTask, setEditingTask] = useState(false);
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem(VIEW_KEY) || "card", // "card" | "compact"
@@ -326,11 +350,23 @@ const TaskList = ({
   const [newTask, setNewTask] = useState(createEmptyTask());
 
   const normalized = tasks.map((t) => normalizeTask(t, groups, formatDate));
+  const [assigneeFilter, setAssigneeFilter] = useState([]);
 
-  const filtered =
-    filter === "All"
-      ? normalized
-      : normalized.filter((t) => t.status === filter);
+  const filtered = normalized
+    .filter((t) => filter === "All" || t.status === filter)
+    .filter((t) => {
+      if (assigneeFilter.length === 0) return true;
+      if (assigneeFilter.includes("unassigned")) {
+        if (!t.assigned_to) return true;
+      }
+      return assigneeFilter.includes(t.assigned_to?.id);
+    })
+    .filter((t) =>
+      search.trim() === ""
+        ? true
+        : t.name.toLowerCase().includes(search.toLowerCase()) ||
+          t.desc?.toLowerCase().includes(search.toLowerCase()),
+    );
 
   const displayed = maxItems ? filtered.slice(0, maxItems) : filtered;
   const hiddenCount = filtered.length - displayed.length;
@@ -377,27 +413,116 @@ const TaskList = ({
   return (
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-6 pb-4">
-          <h2 className="text-lg font-semibold text-slate-900 flex-shrink-0">
-            {title}
-          </h2>
+        {/* Header — 2 baris */}
+        <div className="px-6 pt-6 pb-4 space-y-3">
+          {/* Baris 1: Title + Add Task + Toggle */}
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {onCreateTask && (
+                <button
+                  onClick={handleAddTaskClick}
+                  className="px-3 py-[7px] bg-indigo-600 text-white text-sm rounded-lg font-semibold hover:bg-indigo-700 transition"
+                >
+                  + Add Task
+                </button>
+              )}
+              <button
+                onClick={toggleView}
+                className="p-[7px] rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition"
+              >
+                {viewMode === "card" ? (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
 
+          {/* Baris 2: Search + Filter status + Assignee filter */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Filter — select untuk compact/mobile, buttons untuk card/desktop */}
+            {/* Search */}
+            <div className="relative flex-1 min-w-[120px] max-w-[200px]">
+              <svg
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="w-full pl-8 pr-3 py-[7px] text-xs border border-slate-200 rounded-lg
+          focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]
+          bg-white text-slate-700 placeholder:text-slate-400"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Filter status */}
             {showFilter && (
               <>
-                {/* Compact mode atau layar kecil — pakai select */}
                 <div
-                  className={
-                    viewMode !== "compact" ? "hidden sm:flex gap-2" : "hidden"
-                  }
+                  className={`${viewMode === "compact" ? "hidden" : "hidden sm:flex"} gap-1.5`}
                 >
                   {FILTERS.map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
-                      className={`px-3 py-[7px] rounded-lg text-sm font-medium transition-all duration-200 ${
+                      className={`px-3 py-[7px] rounded-lg text-xs font-medium transition-all ${
                         filter === f
                           ? "bg-indigo-600 text-white shadow-sm"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -407,15 +532,14 @@ const TaskList = ({
                     </button>
                   ))}
                 </div>
-
-                {/* Select — tampil di mobile (card mode) dan semua ukuran di compact mode */}
                 <div
-                  className={viewMode !== "compact" ? "flex sm:hidden" : "flex"}
+                  className={viewMode === "compact" ? "flex" : "flex sm:hidden"}
                 >
                   <select
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg px-2 py-[7px] text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="text-xs border border-slate-200 rounded-lg px-2 py-[7px] text-slate-600 bg-white
+              focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   >
                     {FILTERS.map((f) => (
                       <option key={f}>{f}</option>
@@ -425,66 +549,134 @@ const TaskList = ({
               </>
             )}
 
-            {/* Add Task */}
-            {onCreateTask && (
-              <button
-                onClick={handleAddTaskClick}
-                className="px-3 py-[7px] bg-indigo-600 text-white text-sm rounded-lg font-semibold hover:bg-indigo-700 transition flex-shrink-0"
-              >
-                + Add Task
-              </button>
-            )}
+            {/* Assignee filter */}
+            {members.length > 0 && (
+              <div className="flex items-center gap-1 ml-auto">
+                {/* Unassigned */}
+                <button
+                  onClick={() =>
+                    setAssigneeFilter((prev) =>
+                      prev.includes("unassigned")
+                        ? prev.filter((id) => id !== "unassigned")
+                        : [...prev, "unassigned"],
+                    )
+                  }
+                  title="Unassigned"
+                  className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all
+            ${
+              assigneeFilter.includes("unassigned")
+                ? "border-indigo-500 bg-indigo-100"
+                : "border-dashed border-slate-300 bg-white hover:border-slate-400"
+            }`}
+                >
+                  <svg
+                    className={`w-3.5 h-3.5 ${assigneeFilter.includes("unassigned") ? "text-indigo-500" : "text-slate-400"}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </button>
 
-            {/* Toggle View */}
-            <button
-              onClick={toggleView}
-              className="p-[7px] rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition flex-shrink-0"
-              title={
-                viewMode === "card"
-                  ? "Switch to compact view"
-                  : "Switch to card view"
-              }
-            >
-              {viewMode === "card" ? (
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
-                  />
-                </svg>
-              )}
-            </button>
+                {/* Member avatars */}
+                <div className="flex -space-x-1.5">
+                  {members.filter(Boolean).map((m) => {
+                    const isActive = assigneeFilter.includes(m.id);
+                    const noneSelected = assigneeFilter.length === 0;
+                    const colors = [
+                      "bg-indigo-500",
+                      "bg-emerald-500",
+                      "bg-orange-400",
+                      "bg-pink-500",
+                      "bg-violet-500",
+                      "bg-cyan-500",
+                      "bg-rose-500",
+                      "bg-amber-500",
+                      "bg-teal-500",
+                    ];
+                    const colorIndex = [...(m.full_name || "")].reduce(
+                      (acc, c) => acc + c.charCodeAt(0),
+                      0,
+                    );
+                    const color = colors[colorIndex % colors.length];
+                    const initials = m.full_name
+                      ?.trim()
+                      .split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((w) => w[0].toUpperCase())
+                      .join("");
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() =>
+                          setAssigneeFilter((prev) =>
+                            prev.includes(m.id)
+                              ? prev.filter((id) => id !== m.id)
+                              : [...prev, m.id],
+                          )
+                        }
+                        title={m.full_name}
+                        className={`w-7 h-7 rounded-full text-white text-[10px] font-bold flex items-center justify-center
+                  border-2 border-white transition-all relative ${color}
+                  ${noneSelected || isActive ? "opacity-100" : "opacity-30"}
+                  ${isActive ? "ring-2 ring-indigo-400 ring-offset-1 z-10" : "hover:opacity-80 hover:z-10"}`}
+                      >
+                        {initials}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {assigneeFilter.length > 0 && (
+                  <button
+                    onClick={() => setAssigneeFilter([])}
+                    className="ml-1 text-[11px] text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 px-1.5 py-0.5 rounded transition"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Task list */}
         <div
           className={`flex-1 flex flex-col px-6 pb-6 ${viewMode === "compact" ? "mt-0" : "gap-4 mt-4"}`}
-          // className={`flex-1 flex flex-col px-6 pb-6 ${viewMode === "compact" ? "" : "gap-4 mt-6"}`}
         >
           {displayed.length === 0 ? (
-            <EmptyState compact={viewMode === "compact"} />
+            search.trim() ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <svg
+                  className="w-10 h-10 text-slate-300 mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <p className="text-slate-400 text-sm font-medium">
+                  No results found
+                </p>
+                <p className="text-slate-300 text-xs mt-1">
+                  Try a different keyword
+                </p>
+              </div>
+            ) : (
+              <EmptyState compact={viewMode === "compact"} />
+            )
           ) : viewMode === "compact" ? (
             <div>
               {displayed.map((n) => (
@@ -507,7 +699,6 @@ const TaskList = ({
             ))
           )}
 
-          {/* ← tambahkan kembali hiddenCount */}
           {hiddenCount > 0 && (
             <p className="text-center text-xs text-slate-400 mt-2">
               +{hiddenCount} more tasks
@@ -544,16 +735,15 @@ const TaskList = ({
         <TaskModal
           task={newTask}
           members={members}
-          editing={true} // langsung mode edit saat create
+          editing={true}
           setEditing={(val) => {
-            // kalau user cancel edit saat create, tutup modal
             if (!val) handleCreateClose();
           }}
-          setTask={setNewTask} // update newTask state langsung
+          setTask={setNewTask}
           onClose={handleCreateClose}
           onSave={handleCreateSave}
-          onDelete={null} // tidak ada delete saat create
-          isCreating={true} // opsional: bisa dipakai TaskModal untuk ubah label
+          onDelete={null}
+          isCreating={true}
         />
       )}
     </>

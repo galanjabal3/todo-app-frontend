@@ -4,11 +4,11 @@ import { taskAPI, groupAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { formatDisplayDateTime, toUTCISOString } from "../../utils/dateUtils";
 import { useNotification } from "../../context/NotificationContext";
+import { inputClass } from "../../utils/styles";
 import Loading from "../../components/Loading/Loading";
 import TaskList from "../../components/Task/TaskList";
 import TaskOverview from "../../components/Task/TaskOverview";
 
-// ── Tambahkan helper avatar di atas komponen Dashboard
 const getGroupAvatarColor = (name = "") => {
   const colors = [
     "bg-indigo-500",
@@ -62,7 +62,6 @@ const Dashboard = () => {
     }
   };
 
-  // Update status inline (dari select box di TaskCard)
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       await taskAPI.updateStatus(taskId, newStatus);
@@ -75,7 +74,6 @@ const Dashboard = () => {
         message: "Status updated successfully",
       });
     } catch (error) {
-      console.error("Error updating status:", error);
       showNotification({
         open: true,
         type: "error",
@@ -84,7 +82,6 @@ const Dashboard = () => {
     }
   };
 
-  // Save task setelah edit di TaskModal
   const handleSaveTask = async (updatedTask) => {
     try {
       const dataToSend = {
@@ -105,7 +102,6 @@ const Dashboard = () => {
         message: "Task updated successfully",
       });
     } catch (error) {
-      console.error("Error saving task:", error);
       showNotification({
         open: true,
         type: "error",
@@ -114,7 +110,6 @@ const Dashboard = () => {
     }
   };
 
-  // Delete task dari TaskModal
   const handleDeleteTask = async (taskId) => {
     try {
       await taskAPI.deleteTask(taskId);
@@ -125,7 +120,6 @@ const Dashboard = () => {
         message: "Task deleted successfully",
       });
     } catch (error) {
-      console.error("Error deleting task:", error);
       showNotification({
         open: true,
         type: "error",
@@ -149,7 +143,6 @@ const Dashboard = () => {
         message: "Task created successfully",
       });
     } catch (error) {
-      console.error(error);
       showNotification({
         open: true,
         type: "error",
@@ -169,7 +162,7 @@ const Dashboard = () => {
       });
       setCreateGroupName("");
       setShowCreateGroup(false);
-      fetchData(); // refresh list
+      fetchData();
     } catch (error) {
       showNotification({
         type: "error",
@@ -184,25 +177,26 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-app transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-8">
-          {/* ── HEADER ── */}
+          {/* ── Header ── */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-1">
+              <h1 className="text-3xl font-bold text-app mb-1">
                 Welcome back, {user?.full_name}! 👋
               </h1>
-              <p className="text-slate-500">
+              <p className="text-soft">
                 Here's what's happening with your tasks today.
               </p>
             </div>
           </div>
-          {/* ── STATS ── */}
+
+          {/* ── Stats ── */}
           <TaskOverview tasks={tasks} />
 
-          {/* ── MAIN GRID ── */}
+          {/* ── Main grid ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* ── TASKS ── */}
+            {/* Tasks */}
             <div className="lg:col-span-2">
               <TaskList
                 tasks={tasks}
@@ -210,19 +204,17 @@ const Dashboard = () => {
                 showFilter={true}
                 onStatusChange={handleStatusChange}
                 onSaveTask={handleSaveTask}
-                onCreateTask={handleCreateTask} // ← create task via modal
+                onCreateTask={handleCreateTask}
                 onDeleteTask={handleDeleteTask}
                 groups={groups}
                 formatDate={formatDisplayDateTime}
               />
             </div>
 
-            {/* ── GROUPS ── */}
-            <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 self-start">
+            {/* Groups */}
+            <div className="lg:col-span-1 bg-card rounded-2xl p-6 shadow-sm border border-app self-start transition-colors duration-200">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  My Groups
-                </h2>
+                <h2 className="text-xl font-semibold text-app">My Groups</h2>
                 <button
                   onClick={() => setShowCreateGroup(true)}
                   className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg font-semibold hover:bg-indigo-700 transition cursor-pointer"
@@ -232,15 +224,15 @@ const Dashboard = () => {
               </div>
 
               <div className="flex flex-col gap-4">
-                {/* Empty state groups — lebih bagus */}
                 {groups.length === 0 ? (
-                  <div className="flex flex-col items-center py-10 text-slate-400">
+                  <div className="flex flex-col items-center py-10 text-muted-app">
                     <svg
-                      className="w-12 h-12 text-slate-300 mb-3"
+                      className="w-12 h-12 mb-3"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={1.5}
+                      style={{ color: "var(--text-muted)" }}
                     >
                       <path
                         strokeLinecap="round"
@@ -248,10 +240,10 @@ const Dashboard = () => {
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    <p className="text-sm font-medium text-slate-500">
+                    <p className="text-sm font-medium text-soft">
                       No groups yet
                     </p>
-                    <p className="text-xs text-slate-300 mt-1">
+                    <p className="text-xs text-muted-app mt-1">
                       Ask your team for an invite link
                     </p>
                   </div>
@@ -271,12 +263,12 @@ const Dashboard = () => {
                         onClick={() =>
                           !isPending && navigate(`/groups/${group.id}`)
                         }
-                        className={`p-3 rounded-xl border border-slate-100 transition flex gap-3 items-center
-                      ${
-                        isPending
-                          ? "opacity-75 cursor-default"
-                          : "hover:border-indigo-200 hover:bg-slate-50 cursor-pointer"
-                      }`}
+                        className={`p-3 rounded-xl border transition flex gap-3 items-center
+                          ${
+                            isPending
+                              ? "border-app opacity-75 cursor-default"
+                              : "border-app hover:border-indigo-200 dark:hover:border-indigo-800 hover:bg-subtle cursor-pointer"
+                          }`}
                       >
                         <div
                           className={`w-10 h-10 rounded-xl ${getGroupAvatarColor(group.name)} text-white flex items-center justify-center text-sm font-bold flex-shrink-0`}
@@ -284,20 +276,20 @@ const Dashboard = () => {
                           {getGroupInitials(group.name)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-slate-900 truncate">
+                          <h3 className="font-semibold text-app truncate">
                             {group.name}
                           </h3>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-soft">
                             {activeMembers?.length || 0}{" "}
                             {activeMembers?.length === 1 ? "member" : "members"}
                           </p>
                         </div>
                         {isPending ? (
-                          <span className="text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
+                          <span className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-600 font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
                             Pending
                           </span>
                         ) : (
-                          <span className="ml-auto text-slate-300 text-sm flex-shrink-0">
+                          <span className="ml-auto text-muted-app text-sm flex-shrink-0">
                             ›
                           </span>
                         )}
@@ -311,16 +303,16 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* ── Create Group Modal ── */}
       {showCreateGroup && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
           onClick={() => setShowCreateGroup(false)}
         >
           <div
-            className="w-full max-w-[420px] bg-white rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-[420px] bg-card rounded-2xl shadow-2xl overflow-hidden transition-colors duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 flex justify-between items-center">
               <div>
                 <p className="text-indigo-200 text-xs font-medium uppercase tracking-widest mb-0.5">
@@ -338,9 +330,8 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Body */}
             <div className="p-6">
-              <label className="block mb-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
                 Group Name
               </label>
               <input
@@ -351,7 +342,7 @@ const Dashboard = () => {
                 placeholder="Enter group name..."
                 maxLength={50}
                 autoFocus
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]"
+                className={inputClass}
               />
               <div className="flex gap-3 mt-6">
                 <button
@@ -359,7 +350,7 @@ const Dashboard = () => {
                     setShowCreateGroup(false);
                     setCreateGroupName("");
                   }}
-                  className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-semibold hover:bg-slate-50 transition text-sm"
+                  className="flex-1 py-2.5 border border-app text-soft rounded-lg font-semibold hover:bg-subtle transition text-sm"
                 >
                   Cancel
                 </button>

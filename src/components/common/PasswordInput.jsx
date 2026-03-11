@@ -1,4 +1,3 @@
-// components/common/PasswordInput.jsx
 import { useState } from "react";
 
 const EyeIcon = ({ show }) =>
@@ -60,7 +59,7 @@ export const PasswordInput = ({
       <button
         type="button"
         onClick={() => setShow(!show)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-app hover:text-soft transition"
       >
         <EyeIcon show={show} />
       </button>

@@ -4,12 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
 import { PasswordInput } from "../../components/common/PasswordInput";
 import AppLogo from "../../components/common/AppLogo";
-
-const inputClass =
-  "w-full px-4 py-3 border border-gray-200 rounded-lg text-sm transition-all focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] disabled:opacity-60 disabled:bg-gray-50";
-
-// const inputClass =
-//   "w-full px-4 py-3 border border-gray-200 rounded-xl text-sm ...";
+import { inputClassAuth } from "../../utils/styles";
 
 const SignIn = () => {
   const [formData, setFormData] = useState({ identity: "", password: "" });
@@ -48,7 +43,6 @@ const SignIn = () => {
   return (
     <div className="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-indigo-600 to-violet-600">
       <div className="w-full max-w-[420px]">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <AppLogo size="lg" showText={false} />
@@ -59,10 +53,10 @@ const SignIn = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-card rounded-2xl shadow-2xl p-8 transition-colors duration-200">
           <form onSubmit={handleSubmit}>
             <div className="mb-5">
-              <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
                 Email or Username
               </label>
               <input
@@ -73,12 +67,12 @@ const SignIn = () => {
                 required
                 placeholder="Enter your email or username"
                 disabled={loading}
-                className={inputClass}
+                className={inputClassAuth}
               />
             </div>
 
             <div className="mb-6">
-              <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
                 Password
               </label>
               <PasswordInput
@@ -87,14 +81,14 @@ const SignIn = () => {
                 onChange={handleChange}
                 disabled={loading}
                 placeholder="Enter your password"
-                className={inputClass}
+                className={inputClassAuth}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-indigo-600 text-white text-sm  rounded-lg font-semibold transition hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-indigo-600 text-white text-sm rounded-lg font-semibold transition hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -125,11 +119,11 @@ const SignIn = () => {
             </button>
           </form>
 
-          <p className="text-center mt-6 text-gray-500 text-sm">
+          <p className="text-center mt-6 text-soft text-sm">
             Don't have an account?{" "}
             <Link
               to="/signup"
-              className="text-indigo-600 font-semibold hover:underline"
+              className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
             >
               Sign Up
             </Link>

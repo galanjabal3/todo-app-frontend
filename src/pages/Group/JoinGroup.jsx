@@ -40,8 +40,6 @@ const JoinGroup = () => {
     const loadPreview = async () => {
       try {
         const res = await groupAPI.previewGroup(token);
-        console.log(res);
-
         setGroupInfo(res);
       } catch (error) {
         const msg = error?.message || "";
@@ -83,7 +81,7 @@ const JoinGroup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center p-4">
-      <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-[420px] bg-card rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-6 text-center">
           <div className="flex justify-center mb-4">
@@ -97,7 +95,7 @@ const JoinGroup = () => {
 
         {/* Body */}
         <div className="p-8 flex flex-col items-center text-center">
-          {/* ── Preview loading ── */}
+          {/* Preview loading */}
           {previewLoading && (
             <>
               <svg
@@ -119,35 +117,32 @@ const JoinGroup = () => {
                   d="M4 12a8 8 0 018-8v8z"
                 />
               </svg>
-              <p className="text-slate-500 text-sm">Loading invite...</p>
+              <p className="text-soft text-sm">Loading invite...</p>
             </>
           )}
 
-          {/* ── Preview — konfirmasi join ── */}
+          {/* Preview — join confirmation */}
           {!previewLoading && status === "preview" && groupInfo && (
             <>
-              {/* Group Avatar */}
               <div
                 className={`w-20 h-20 rounded-2xl ${getAvatarColor(groupInfo.name)} text-white flex items-center justify-center text-2xl font-bold shadow-lg mb-4`}
               >
                 {getInitials(groupInfo.name)}
               </div>
-
-              <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1">
+              <p className="text-xs text-muted-app uppercase tracking-wide font-semibold mb-1">
                 You've been invited to join
               </p>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">
+              <h2 className="text-2xl font-bold text-app mb-1">
                 {groupInfo.name}
               </h2>
-              <p className="text-sm text-slate-400 mb-8">
+              <p className="text-sm text-soft mb-8">
                 {groupInfo.member_count}{" "}
                 {groupInfo.member_count === 1 ? "member" : "members"}
               </p>
-
               <div className="flex gap-3 w-full">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-semibold hover:bg-slate-50 transition text-sm cursor-pointer"
+                  className="flex-1 py-2.5 border border-app text-soft rounded-lg font-semibold hover:bg-hover transition text-sm cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -161,7 +156,7 @@ const JoinGroup = () => {
             </>
           )}
 
-          {/* ── Joining loading ── */}
+          {/* Joining loading */}
           {status === "loading" && (
             <>
               <svg
@@ -183,17 +178,15 @@ const JoinGroup = () => {
                   d="M4 12a8 8 0 018-8v8z"
                 />
               </svg>
-              <p className="text-slate-600 font-medium">Joining group...</p>
-              <p className="text-sm text-slate-400 mt-1">
-                Please wait a moment
-              </p>
+              <p className="text-app font-medium">Joining group...</p>
+              <p className="text-sm text-soft mt-1">Please wait a moment</p>
             </>
           )}
 
-          {/* ── Success ── */}
+          {/* Success */}
           {status === "success" && (
             <>
-              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-4">
                 <svg
                   className="w-8 h-8 text-emerald-500"
                   fill="none"
@@ -208,17 +201,17 @@ const JoinGroup = () => {
                   />
                 </svg>
               </div>
-              <p className="text-slate-800 font-semibold text-lg mb-1">
+              <p className="text-app font-semibold text-lg mb-1">
                 Request Sent!
               </p>
-              <p className="text-sm text-slate-400 mb-2">
+              <p className="text-sm text-soft mb-2">
                 Your request to join{" "}
-                <span className="font-semibold text-slate-600">
+                <span className="font-semibold text-app">
                   {groupInfo?.name}
                 </span>{" "}
                 has been sent.
               </p>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-soft mb-6">
                 Please wait for the admin to approve.
               </p>
               <button
@@ -230,10 +223,10 @@ const JoinGroup = () => {
             </>
           )}
 
-          {/* ── Already joined/requested ── */}
+          {/* Already joined/requested */}
           {status === "already" && (
             <>
-              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mb-4">
                 <svg
                   className="w-8 h-8 text-amber-500"
                   fill="none"
@@ -248,10 +241,10 @@ const JoinGroup = () => {
                   />
                 </svg>
               </div>
-              <p className="text-slate-800 font-semibold text-lg mb-1">
+              <p className="text-app font-semibold text-lg mb-1">
                 Already Requested
               </p>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-soft mb-6">
                 {message || "You have already requested to join this group."}
               </p>
               <button
@@ -263,10 +256,10 @@ const JoinGroup = () => {
             </>
           )}
 
-          {/* ── Error ── */}
+          {/* Error */}
           {status === "error" && (
             <>
-              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
                 <svg
                   className="w-8 h-8 text-red-500"
                   fill="none"
@@ -281,10 +274,10 @@ const JoinGroup = () => {
                   />
                 </svg>
               </div>
-              <p className="text-slate-800 font-semibold text-lg mb-1">
+              <p className="text-app font-semibold text-lg mb-1">
                 Failed to Join
               </p>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-soft mb-6">
                 {message || previewError}
               </p>
               <button

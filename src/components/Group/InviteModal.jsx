@@ -14,10 +14,7 @@ const InviteModal = ({ groupId, onClose }) => {
     try {
       setLoading(true);
       const res = await groupAPI.inviteMember(groupId);
-      setInviteData({
-        link: res.link,
-        expires_days: res.expires_days,
-      });
+      setInviteData({ link: res.link, expires_days: res.expires_days });
     } catch (error) {
       console.error(error);
     } finally {
@@ -38,11 +35,11 @@ const InviteModal = ({ groupId, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
+      className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[480px] bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-[480px] bg-card rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -66,7 +63,7 @@ const InviteModal = ({ groupId, onClose }) => {
         {/* Body */}
         <div className="p-6">
           {loading ? (
-            <div className="flex flex-col items-center py-8 text-slate-400">
+            <div className="flex flex-col items-center py-8 text-muted-app">
               <svg
                 className="animate-spin w-8 h-8 text-indigo-500 mb-3"
                 viewBox="0 0 24 24"
@@ -90,9 +87,9 @@ const InviteModal = ({ groupId, onClose }) => {
             </div>
           ) : inviteData ? (
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-soft">
                 Share this link to invite new members. Valid for{" "}
-                <span className="font-semibold text-slate-700">
+                <span className="font-semibold text-app">
                   {inviteData.expires_days} days
                 </span>
                 .
@@ -100,11 +97,11 @@ const InviteModal = ({ groupId, onClose }) => {
 
               {/* Invite Link */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-semibold text-soft uppercase tracking-wide mb-1.5">
                   Invite Link
                 </label>
                 <div className="flex gap-2">
-                  <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-600 truncate">
+                  <div className="flex-1 bg-subtle border border-app rounded-lg px-3 py-2.5 text-sm text-soft truncate">
                     {inviteData.link}
                   </div>
                   <button
@@ -156,7 +153,7 @@ const InviteModal = ({ groupId, onClose }) => {
 
               {/* Expiry + Regenerate */}
               <div className="flex items-center justify-between pt-2">
-                <p className="text-xs text-slate-400 flex items-center gap-1">
+                <p className="text-xs text-muted-app flex items-center gap-1">
                   <svg
                     className="w-3.5 h-3.5"
                     fill="none"
@@ -174,7 +171,7 @@ const InviteModal = ({ groupId, onClose }) => {
                 </p>
                 <button
                   onClick={handleRegenerate}
-                  className="text-xs text-slate-400 hover:text-indigo-600 transition underline"
+                  className="text-xs text-muted-app hover:text-indigo-500 dark:hover:text-indigo-400 transition underline"
                 >
                   Generate new link
                 </button>

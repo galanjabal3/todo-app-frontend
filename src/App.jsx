@@ -8,23 +8,21 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import ThemeToggle from "./components/common/ThemeToggle";
 import Layout from "./components/Layout/Layout";
 import Loading from "./components/Loading/Loading";
 import SignIn from "./pages/Auth/SignIn";
 import SignUp from "./pages/Auth/SignUp";
 import Dashboard from "./pages/Dashboard/Dashboard";
-// import AddTask from "./pages/Tasks/AddTask";
 import Profile from "./pages/Profile/Profile";
 import JoinGroup from "./pages/Group/JoinGroup";
 import GroupDetail from "./pages/Group/GroupDetail";
 
-// Protected Route Component
+// ProtectedRoute — no loading check needed, handled by AppRoutes
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-  const location = useLocation(); // ← tambahkan
-
-  if (loading) return <Loading />;
-
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
   return isAuthenticated ? (
     children
   ) : (
@@ -32,22 +30,18 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
-// Public Route Component (redirect to dashboard if already authenticated)
+// PublicRoute — no loading check needed, handled by AppRoutes
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-xl text-gray-500">
-        Loading...
-      </div>
-    );
-  }
-
+  const { isAuthenticated } = useAuth();
   return !isAuthenticated ? children : <Navigate to="/dashboard" />;
 };
 
+// Single loading point — waits for auth check before rendering any route
 function AppRoutes() {
+  const { loading } = useAuth();
+
+  if (loading) return <Loading text="Loading..." />;
+
   return (
     <Routes>
       {/* Public Routes */}
@@ -68,7 +62,7 @@ function AppRoutes() {
         }
       />
 
-      {/* Protected Routes */}
+      {/* Protected Routes — with Layout (navbar) */}
       <Route
         path="/"
         element={
@@ -79,11 +73,10 @@ function AppRoutes() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        {/* <Route path="tasks/new" element={<AddTask />} /> */}
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      {/* Protected Routes - TANPA navbar (tanpa Layout) */}
+      {/* Protected Routes — without Layout */}
       <Route
         path="/groups/:groupId"
         element={
@@ -92,7 +85,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/join/:token"
         element={
@@ -110,13 +102,16 @@ function AppRoutes() {
 
 function App() {
   return (
-    <NotificationProvider>
-      <Router>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </Router>
-    </NotificationProvider>
+    <ThemeProvider>
+      <ThemeToggle />
+      <NotificationProvider>
+        <Router>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </Router>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }
 

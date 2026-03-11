@@ -19,15 +19,13 @@ const TaskListHeader = ({
   const filterDropdownRef = useRef(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
         filterDropdownRef.current &&
         !filterDropdownRef.current.contains(e.target)
-      ) {
+      )
         setShowFilterDropdown(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -37,7 +35,7 @@ const TaskListHeader = ({
     <div className="px-6 pt-5 pb-0">
       {/* Row 1: Title + Add Task + Toggle */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <h2 className="text-lg font-semibold text-app">{title}</h2>
         <div className="flex items-center gap-2 flex-shrink-0">
           {onAddTask && (
             <button
@@ -67,7 +65,7 @@ const TaskListHeader = ({
                 ? "Switch to compact view"
                 : "Switch to card view"
             }
-            className="p-[7px] rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition"
+            className="p-[7px] rounded-lg border border-app text-soft hover:bg-subtle hover:text-indigo-600 transition"
           >
             {viewMode === "card" ? (
               <svg
@@ -103,11 +101,11 @@ const TaskListHeader = ({
       </div>
 
       {/* Row 2: Toolbar */}
-      <div className="flex items-center gap-2 border-t border-slate-100 py-3">
+      <div className="flex items-center gap-2 border-t border-light py-3">
         {/* Search */}
         <div className="relative flex-1 min-w-0">
           <svg
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-app"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -124,13 +122,12 @@ const TaskListHeader = ({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search tasks..."
-            className="w-full pl-8 pr-8 py-[7px] text-xs border-0 bg-transparent text-slate-700
-              placeholder:text-slate-400 focus:outline-none"
+            className="w-full pl-8 pr-8 py-[7px] text-xs border-0 bg-transparent text-app placeholder:text-muted-app focus:outline-none"
           />
           {search && (
             <button
               onClick={() => onSearchChange("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-app hover:text-soft"
             >
               <svg
                 className="w-3 h-3"
@@ -149,25 +146,26 @@ const TaskListHeader = ({
           )}
         </div>
 
-        {/* Divider */}
-        <div className="w-px h-5 bg-slate-200 flex-shrink-0" />
+        <div
+          className="w-px h-5 flex-shrink-0"
+          style={{ backgroundColor: "var(--border)" }}
+        />
 
         {/* Assignee filter */}
         {members.length > 0 && (
           <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Unassigned */}
             <button
               onClick={() => onAssigneeToggle("unassigned")}
               title="Unassigned"
               className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
                 ${
                   assigneeFilter.includes("unassigned")
-                    ? "border-indigo-500 bg-indigo-100"
-                    : "border-dashed border-slate-300 bg-white hover:border-slate-400"
+                    ? "border-indigo-500 bg-indigo-100 dark:bg-indigo-900/30"
+                    : "border-dashed border-app bg-card hover:border-soft"
                 }`}
             >
               <svg
-                className={`w-3 h-3 ${assigneeFilter.includes("unassigned") ? "text-indigo-500" : "text-slate-400"}`}
+                className={`w-3 h-3 ${assigneeFilter.includes("unassigned") ? "text-indigo-500" : "text-muted-app"}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -181,7 +179,6 @@ const TaskListHeader = ({
               </svg>
             </button>
 
-            {/* Member avatars */}
             <div className="flex -space-x-1.5">
               {members.filter(Boolean).map((m) => {
                 const isActive = assigneeFilter.includes(m.id);
@@ -197,7 +194,7 @@ const TaskListHeader = ({
                     onClick={() => onAssigneeToggle(m.id)}
                     title={m.full_name}
                     className={`w-6 h-6 rounded-full text-white text-[9px] font-bold flex items-center justify-center
-                      border-2 border-white transition-all relative flex-shrink-0 ${color}
+                      border-2 border-card transition-all relative flex-shrink-0 ${color}
                       ${noneSelected || isActive ? "opacity-100" : "opacity-30"}
                       ${isActive ? "ring-2 ring-indigo-400 ring-offset-1 z-10" : "hover:opacity-80 hover:z-10"}`}
                   >
@@ -210,7 +207,7 @@ const TaskListHeader = ({
             {assigneeFilter.length > 0 && (
               <button
                 onClick={onAssigneeClear}
-                className="text-[10px] text-slate-400 hover:text-indigo-600 px-1 py-0.5 rounded transition"
+                className="text-[10px] text-muted-app hover:text-indigo-600 px-1 py-0.5 rounded transition"
               >
                 Clear
               </button>
@@ -218,9 +215,11 @@ const TaskListHeader = ({
           </div>
         )}
 
-        {/* Divider */}
         {members.length > 0 && showFilter && (
-          <div className="w-px h-5 bg-slate-200 flex-shrink-0" />
+          <div
+            className="w-px h-5 flex-shrink-0"
+            style={{ backgroundColor: "var(--border)" }}
+          />
         )}
 
         {/* Status dropdown */}
@@ -229,7 +228,11 @@ const TaskListHeader = ({
             <button
               onClick={() => setShowFilterDropdown((prev) => !prev)}
               className={`flex items-center gap-1.5 px-2.5 py-[7px] rounded-lg text-xs font-medium transition-all
-                ${filter !== "All" ? "bg-indigo-50 text-indigo-600" : "text-slate-500 hover:bg-slate-50"}`}
+                ${
+                  filter !== "All"
+                    ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600"
+                    : "text-soft hover:bg-subtle"
+                }`}
             >
               <svg
                 className="w-3.5 h-3.5"
@@ -263,7 +266,7 @@ const TaskListHeader = ({
             </button>
 
             {showFilterDropdown && (
-              <div className="absolute top-full right-0 mt-1 w-36 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              <div className="absolute top-full right-0 mt-1 w-36 bg-card border border-app rounded-xl shadow-lg z-50 overflow-hidden">
                 {FILTERS.map((f) => (
                   <button
                     key={f}
@@ -272,7 +275,11 @@ const TaskListHeader = ({
                       setShowFilterDropdown(false);
                     }}
                     className={`w-full text-left px-3 py-2 text-xs font-medium transition-all flex items-center gap-2
-                      ${filter === f ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50"}`}
+                      ${
+                        filter === f
+                          ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600"
+                          : "text-soft hover:bg-subtle"
+                      }`}
                   >
                     {filter === f ? (
                       <svg

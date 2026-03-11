@@ -1,5 +1,70 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
+/* ── Light mode variables ── */
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-hover: #f8fafc;
+  --bg-overlay: rgba(248, 250, 252, 0.85);
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --input-bg: #ffffff;
+  --input-border: #e5e7eb;
+  --input-disabled-bg: #f9fafb;
+  --input-disabled-text: #6b7280;
+}
+
+/* ── Dark mode variables ── */
+.dark,
+html.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #1a2744;
+  --bg-hover: #293548;
+  --bg-overlay: rgba(15, 23, 42, 0.85);
+  --border: #334155;
+  --border-light: #293548;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --input-bg: #334155;
+  --input-border: #475569;
+  --input-disabled-bg: #1e293b;
+  --input-disabled-text: #64748b;
+}
+
+/* ── Global utility classes ── */
+@layer utilities {
+  .bg-app         { background-color: var(--bg-primary); }
+  .bg-card        { background-color: var(--bg-secondary); }
+  .bg-subtle      { background-color: var(--bg-tertiary); }
+  .bg-hover       { background-color: var(--bg-hover); }
+  .bg-overlay     { background-color: var(--bg-overlay); }
+  .border-app     { border-color: var(--border); }
+  .border-light   { border-color: var(--border-light); }
+  .text-app       { color: var(--text-primary); }
+  .text-soft      { color: var(--text-secondary); }
+  .text-muted-app { color: var(--text-muted); }
+  .input-base {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+  }
+  .input-base::placeholder {
+    color: var(--text-muted);
+  }
+  .input-base:disabled {
+    background-color: var(--input-disabled-bg);
+    color: var(--input-disabled-text);
+  }
+}
+
+/* ── Animations ── */
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }

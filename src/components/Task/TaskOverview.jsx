@@ -26,7 +26,7 @@ const TaskOverview = ({ tasks }) => {
       value: taskStats.total,
       label: "Total Tasks",
       border: "border-indigo-400",
-      iconBg: "bg-indigo-50 text-indigo-500",
+      iconBg: "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500",
     },
     {
       icon: (
@@ -47,7 +47,8 @@ const TaskOverview = ({ tasks }) => {
       value: taskStats.todo,
       label: "To Do",
       border: "border-slate-400",
-      iconBg: "bg-slate-50 text-slate-500",
+      iconBg:
+        "bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400",
     },
     {
       icon: (
@@ -68,7 +69,7 @@ const TaskOverview = ({ tasks }) => {
       value: taskStats.inProgress,
       label: "In Progress",
       border: "border-amber-400",
-      iconBg: "bg-amber-50 text-amber-500",
+      iconBg: "bg-amber-50 dark:bg-amber-900/30 text-amber-500",
     },
     {
       icon: (
@@ -89,7 +90,7 @@ const TaskOverview = ({ tasks }) => {
       value: taskStats.done,
       label: "Completed",
       border: "border-emerald-400",
-      iconBg: "bg-emerald-50 text-emerald-500",
+      iconBg: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500",
     },
   ];
 
@@ -98,17 +99,17 @@ const TaskOverview = ({ tasks }) => {
       {stats.map((s) => (
         <div
           key={s.label}
-          className={`bg-white px-6 py-7 rounded-xl shadow-sm border-t-4 ${s.border} flex flex-col items-center`}
+          className={`bg-card px-6 py-7 rounded-xl shadow-sm border-t-4 ${s.border} flex flex-col items-center transition-colors duration-200`}
         >
           <div
             className={`w-11 h-11 rounded-xl ${s.iconBg} flex items-center justify-center mb-3`}
           >
             {s.icon}
           </div>
-          <div className="text-3xl font-bold text-slate-900 tracking-tight">
+          <div className="text-3xl font-bold text-app tracking-tight">
             {s.value}
           </div>
-          <div className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wide">
+          <div className="text-xs font-medium text-muted-app mt-1 uppercase tracking-wide">
             {s.label}
           </div>
         </div>

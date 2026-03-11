@@ -31,14 +31,12 @@ const TaskList = ({
   const [isCreating, setIsCreating] = useState(false);
   const [newTask, setNewTask] = useState(createEmptyTask());
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 1000);
     return () => clearTimeout(timer);
   }, [search]);
 
   const normalized = tasks.map((t) => normalizeTask(t, groups, formatDate));
-
   const filtered = normalized
     .filter((t) => filter === "All" || t.status === filter)
     .filter((t) => {
@@ -72,12 +70,10 @@ const TaskList = ({
     setSelectedNormalized(null);
     setEditingTask(false);
   };
-
   const handleAddTaskClick = () => {
     setNewTask(createEmptyTask());
     setIsCreating(true);
   };
-
   const handleCreateClose = () => {
     setIsCreating(false);
     setNewTask(createEmptyTask());
@@ -97,7 +93,7 @@ const TaskList = ({
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm border border-app h-full flex flex-col overflow-hidden transition-colors duration-200">
         <TaskListHeader
           title={title}
           search={search}
@@ -114,7 +110,6 @@ const TaskList = ({
           onAddTask={onCreateTask ? handleAddTaskClick : null}
         />
 
-        {/* Task list */}
         <div
           className={`flex-1 flex flex-col px-6 pb-6 ${viewMode === "compact" ? "mt-0" : "gap-4 mt-2"}`}
         >
@@ -144,16 +139,14 @@ const TaskList = ({
               />
             ))
           )}
-
           {hiddenCount > 0 && (
-            <p className="text-center text-xs text-slate-400 mt-2">
+            <p className="text-center text-xs text-muted-app mt-2">
               +{hiddenCount} more tasks
             </p>
           )}
         </div>
       </div>
 
-      {/* TaskModal — view/edit existing task */}
       {selectedNormalized && (
         <TaskModal
           task={selectedNormalized._raw}
@@ -176,7 +169,6 @@ const TaskList = ({
         />
       )}
 
-      {/* TaskModal — create new task */}
       {isCreating && (
         <TaskModal
           task={newTask}

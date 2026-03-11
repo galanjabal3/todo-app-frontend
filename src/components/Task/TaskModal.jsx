@@ -3,9 +3,14 @@ import { toUTCISOString, toInputDateTime } from "../../utils/dateUtils";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
 import { useNotification } from "../../context/NotificationContext";
 import TaskAttachments from "./TaskAttachments";
+import {
+  inputClass,
+  btnPrimary,
+  btnSecondary,
+  btnDanger,
+} from "../../utils/styles";
 
-const inputClass =
-  "w-full px-3 py-[0.6rem] border border-gray-200 rounded-lg text-[0.9rem] transition-all duration-200 bg-white focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] disabled:bg-gray-50 disabled:text-gray-500 disabled:border-gray-100 disabled:cursor-default";
+// ── Avatar helpers ─────────────────────────────────────────────────────────────
 
 const getAvatarColor = (name = "") => {
   const colors = [
@@ -43,15 +48,19 @@ const Avatar = ({ full_name, size = "sm" }) => {
   );
 };
 
+// ── Form field wrapper ─────────────────────────────────────────────────────────
+
 const Field = ({ label, required, children }) => (
   <div>
-    <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+    <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
       {label}
       {required && <span className="text-red-400 ml-1">*</span>}
     </label>
     {children}
   </div>
 );
+
+// ── Main component ─────────────────────────────────────────────────────────────
 
 const TaskModal = ({
   task,
@@ -121,14 +130,14 @@ const TaskModal = ({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
+        className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-center z-[1000] p-4"
         onClick={onClose}
       >
         <div
-          className="w-full max-w-[680px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease] max-h-[90vh] flex flex-col"
+          className="w-full max-w-[680px] bg-card rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease] max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* ── Header — fixed, tidak scroll ── */}
+          {/* ── Header — gradient, no dark variant needed ── */}
           <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-5 flex justify-between items-center flex-shrink-0">
             <div>
               <p className="text-indigo-200 text-xs font-medium uppercase tracking-widest mb-0.5">
@@ -184,7 +193,6 @@ const TaskModal = ({
 
           {/* ── Body — scrollable ── */}
           <div className="flex-1 overflow-y-auto">
-            {/* Fields */}
             <div className="px-6 py-5 space-y-5">
               {/* Title */}
               <Field label="Task Title" required>
@@ -281,21 +289,21 @@ const TaskModal = ({
                       ))}
                     </select>
                   ) : (
-                    <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-3 px-3 py-2.5 bg-subtle border border-app rounded-lg">
                       {assignedMember ? (
                         <>
                           <Avatar full_name={assignedMember.full_name} />
                           <div>
-                            <p className="text-sm font-medium text-gray-800 leading-none">
+                            <p className="text-sm font-medium text-app leading-none">
                               {assignedMember.full_name}
                             </p>
-                            <p className="text-xs text-gray-400 mt-0.5">
+                            <p className="text-xs text-muted-app mt-0.5">
                               @{assignedMember.username}
                             </p>
                           </div>
                         </>
                       ) : (
-                        <span className="text-sm text-gray-400 italic">
+                        <span className="text-sm text-muted-app italic">
                           Unassigned
                         </span>
                       )}
@@ -304,13 +312,13 @@ const TaskModal = ({
                 </Field>
               ) : task.assigned_to ? (
                 <Field label="Assigned To">
-                  <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3 px-3 py-2.5 bg-subtle border border-app rounded-lg">
                     <Avatar full_name={task.assigned_to.full_name} />
                     <div>
-                      <p className="text-sm font-medium text-gray-800 leading-none">
+                      <p className="text-sm font-medium text-app leading-none">
                         {task.assigned_to.full_name}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-muted-app mt-0.5">
                         @{task.assigned_to.username}
                       </p>
                     </div>
@@ -319,9 +327,9 @@ const TaskModal = ({
               ) : null}
             </div>
 
-            {/* Attachments — di bawah fields, dengan separator */}
+            {/* Attachments section — only for existing tasks */}
             {!isCreating && task?.id && (
-              <div className="px-6 pb-6 pt-4 border-t border-slate-100">
+              <div className="px-6 pb-6 pt-4 border-t border-light">
                 <TaskAttachments
                   task={task}
                   onTaskUpdate={(updated) => setTask(updated)}
@@ -331,15 +339,15 @@ const TaskModal = ({
             )}
           </div>
 
-          {/* ── Footer — fixed, tidak scroll ── */}
-          <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 flex justify-between items-center flex-shrink-0">
+          {/* ── Footer — fixed ── */}
+          <div className="px-8 py-5 bg-subtle border-t border-light flex justify-between items-center flex-shrink-0">
             {/* Left: Delete */}
             <div>
               {!isCreating && onDelete && !editing && (
                 <button
                   onClick={() => setShowConfirm(true)}
                   disabled={loading}
-                  className="px-4 py-2 text-red-500 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-50 transition disabled:opacity-60 flex items-center gap-2"
+                  className={btnDanger}
                 >
                   <svg
                     className="w-4 h-4"
@@ -369,14 +377,14 @@ const TaskModal = ({
                       isCreating ? onClose() : setEditing(false);
                     }}
                     disabled={loading}
-                    className="px-5 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition disabled:opacity-60"
+                    className={btnSecondary}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={loading}
-                    className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-60 flex items-center gap-2"
+                    className={btnPrimary}
                   >
                     {loading ? (
                       <>
@@ -402,7 +410,7 @@ const TaskModal = ({
                         Saving...
                       </>
                     ) : isCreating ? (
-                      <span className="flex items-center gap-2">
+                      <>
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -417,9 +425,9 @@ const TaskModal = ({
                           />
                         </svg>
                         Create Task
-                      </span>
+                      </>
                     ) : (
-                      <span className="flex items-center gap-2">
+                      <>
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -434,21 +442,18 @@ const TaskModal = ({
                           />
                         </svg>
                         Save Changes
-                      </span>
+                      </>
                     )}
                   </button>
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={onClose}
-                    className="px-5 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
-                  >
+                  <button onClick={onClose} className={btnSecondary}>
                     Close
                   </button>
                   <button
                     onClick={() => setEditing(true)}
-                    className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition flex items-center gap-2"
+                    className={btnPrimary}
                   >
                     <svg
                       className="w-4 h-4"

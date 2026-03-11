@@ -1,8 +1,6 @@
 import { DENORMALIZE_STATUS, STATUS_CONFIG } from "./taskUtils";
 import { getAvatarColor, getInitials } from "./taskUtils";
 
-// ── Avatar ─────────────────────────────────────────────────────────────────────
-
 export const AssigneeAvatar = ({ full_name, size = "sm" }) => {
   const sizeClass = size === "sm" ? "w-7 h-7 text-[11px]" : "w-9 h-9 text-sm";
   return (
@@ -14,8 +12,6 @@ export const AssigneeAvatar = ({ full_name, size = "sm" }) => {
     </div>
   );
 };
-
-// ── Status controls ────────────────────────────────────────────────────────────
 
 export const StatusSelect = ({ status, taskId, onStatusChange }) => {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG["To Do"];
@@ -45,25 +41,18 @@ export const StatusBadge = ({ status }) => {
   );
 };
 
-// ── TaskCard ───────────────────────────────────────────────────────────────────
-
 const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
   <div
     onClick={() => onTaskClick?.(normalized)}
-    className={`bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200
-      ${normalized.isOverdue ? "border-red-200 hover:border-red-300" : "border-slate-200 hover:border-indigo-300"}
+    className={`bg-card border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200
+      ${normalized.isOverdue ? "border-red-200 dark:border-red-800 hover:border-red-300" : "border-app hover:border-indigo-300 dark:hover:border-indigo-700"}
       ${onTaskClick ? "cursor-pointer" : ""}`}
   >
-    {/* Row 1: Title + Status */}
     <div className="flex items-start justify-between gap-3">
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-slate-900 truncate">
-          {normalized.name}
-        </h3>
+        <h3 className="font-semibold text-app truncate">{normalized.name}</h3>
         {normalized.desc && (
-          <p className="text-sm text-slate-500 mt-0.5 truncate">
-            {normalized.desc}
-          </p>
+          <p className="text-sm text-soft mt-0.5 truncate">{normalized.desc}</p>
         )}
       </div>
       <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -79,22 +68,25 @@ const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
       </div>
     </div>
 
-    {/* Row 2: Avatar + Due date */}
     {(normalized.assigned_to || normalized.due) && (
       <div className="flex items-center gap-2 mt-3">
         {normalized.assigned_to && (
           <AssigneeAvatar full_name={normalized.assigned_to.full_name} />
         )}
         {normalized.assigned_to && normalized.due && (
-          <span className="text-slate-300 text-xs">·</span>
+          <span className="text-muted-app text-xs">·</span>
         )}
         {normalized.due && (
           <span
             className={`px-2 py-0.5 rounded-md flex items-center gap-1 text-xs whitespace-nowrap
-            ${normalized.isOverdue ? "bg-red-50 text-red-500" : "bg-slate-100 text-slate-500"}`}
+            ${
+              normalized.isOverdue
+                ? "bg-red-50 dark:bg-red-900/20 text-red-500"
+                : "bg-subtle text-soft"
+            }`}
           >
             <svg
-              className={`w-3 h-3 flex-shrink-0 ${normalized.isOverdue ? "text-red-400" : "text-slate-400"}`}
+              className={`w-3 h-3 flex-shrink-0 ${normalized.isOverdue ? "text-red-400" : "text-muted-app"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

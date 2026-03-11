@@ -2,7 +2,7 @@ import { AlertTriangle, ShieldX, WifiOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ErrorStatePage({
-  type = "server", // "server" | "expired" | "forbidden" | "network"
+  type = "server",
   title,
   description,
 }) {
@@ -12,7 +12,7 @@ export default function ErrorStatePage({
     server: {
       icon: <AlertTriangle className="w-12 h-12 text-red-500" />,
       title: "Something went wrong",
-      description: "We couldn’t process your request. Please try again later.",
+      description: "We couldn't process your request. Please try again later.",
       action: () => window.location.reload(),
       buttonText: "Retry",
     },
@@ -26,12 +26,12 @@ export default function ErrorStatePage({
     forbidden: {
       icon: <ShieldX className="w-12 h-12 text-red-500" />,
       title: "Access denied",
-      description: "You don’t have permission to access this page.",
+      description: "You don't have permission to access this page.",
       action: () => navigate("/dashboard"),
       buttonText: "Back to Dashboard",
     },
     network: {
-      icon: <WifiOff className="w-12 h-12 text-gray-500" />,
+      icon: <WifiOff className="w-12 h-12 text-soft" />,
       title: "Network error",
       description: "Please check your internet connection and try again.",
       action: () => window.location.reload(),
@@ -42,22 +42,20 @@ export default function ErrorStatePage({
   const current = config[type];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
-      <div className="bg-white shadow-xl rounded-2xl p-8 max-w-md w-full text-center space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-app px-6 transition-colors duration-200">
+      <div className="bg-card shadow-xl rounded-2xl p-8 max-w-md w-full text-center space-y-6 transition-colors duration-200">
         <div className="flex justify-center">{current.icon}</div>
-
         <div>
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-xl font-semibold text-app">
             {title || current.title}
           </h2>
-          <p className="text-gray-500 mt-2 text-sm">
+          <p className="text-soft mt-2 text-sm">
             {description || current.description}
           </p>
         </div>
-
         <button
           onClick={current.action}
-          className="w-full py-2.5 rounded-xl bg-black text-white hover:bg-gray-800 transition cursor-pointer"
+          className="w-full py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-slate-300 transition cursor-pointer"
         >
           {current.buttonText}
         </button>

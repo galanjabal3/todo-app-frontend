@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
 import { PasswordInput } from "../../components/common/PasswordInput";
 import AppLogo from "../../components/common/AppLogo";
-
-const inputClass =
-  "w-full px-4 py-3 border border-gray-200 rounded-lg text-sm transition-all focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] disabled:opacity-60 disabled:bg-gray-50";
+import { inputClassAuth } from "../../utils/styles";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -21,14 +19,12 @@ const SignUp = () => {
   const { signup } = useAuth();
   const { showNotification } = useNotification();
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     if (formData.password !== formData.password_confirm) {
       showNotification({
         open: true,
@@ -47,7 +43,6 @@ const SignUp = () => {
       setLoading(false);
       return;
     }
-
     try {
       await signup(formData);
       showNotification({
@@ -70,7 +65,6 @@ const SignUp = () => {
   return (
     <div className="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-indigo-600 to-violet-600">
       <div className="w-full max-w-[420px]">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <AppLogo size="lg" showText={false} />
@@ -81,7 +75,7 @@ const SignUp = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-card rounded-2xl shadow-2xl p-8 transition-colors duration-200">
           <form onSubmit={handleSubmit}>
             {[
               {
@@ -110,7 +104,7 @@ const SignUp = () => {
               },
             ].map((field) => (
               <div key={field.name} className="mb-4">
-                <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
                   {field.label}
                 </label>
                 <input
@@ -121,14 +115,14 @@ const SignUp = () => {
                   required={field.required}
                   placeholder={field.placeholder}
                   disabled={loading}
-                  className={inputClass}
+                  className={inputClassAuth}
                   minLength={field.minLength}
                 />
               </div>
             ))}
 
             <div className="mb-4">
-              <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
                 Password
               </label>
               <PasswordInput
@@ -137,12 +131,12 @@ const SignUp = () => {
                 onChange={handleChange}
                 disabled={loading}
                 placeholder="Min 8 characters"
-                className={inputClass}
+                className={inputClassAuth}
               />
             </div>
 
             <div className="mb-6">
-              <label className="block mb-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="block mb-1.5 text-xs font-semibold text-soft uppercase tracking-wide">
                 Confirm Password
               </label>
               <PasswordInput
@@ -151,7 +145,7 @@ const SignUp = () => {
                 onChange={handleChange}
                 disabled={loading}
                 placeholder="Confirm your password"
-                className={inputClass}
+                className={inputClassAuth}
               />
             </div>
 
@@ -189,11 +183,11 @@ const SignUp = () => {
             </button>
           </form>
 
-          <p className="text-center mt-6 text-gray-500 text-sm">
+          <p className="text-center mt-6 text-soft text-sm">
             Already have an account?{" "}
             <Link
               to="/signin"
-              className="text-indigo-600 font-semibold hover:underline"
+              className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
             >
               Sign In
             </Link>

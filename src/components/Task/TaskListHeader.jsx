@@ -1,5 +1,10 @@
 import { useRef, useEffect, useState } from "react";
-import { FILTERS, AVATAR_COLORS, getInitials } from "./taskUtils";
+import {
+  FILTERS,
+  AVATAR_COLORS,
+  getInitials,
+  PRIORITY_FILTERS,
+} from "./taskUtils";
 
 const TaskListHeader = ({
   title,
@@ -15,9 +20,13 @@ const TaskListHeader = ({
   viewMode,
   onToggleView,
   onAddTask,
+  priorityFilter,
+  onPriorityFilterChange,
 }) => {
   const filterDropdownRef = useRef(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const priorityDropdownRef = useRef(null);
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -26,6 +35,11 @@ const TaskListHeader = ({
         !filterDropdownRef.current.contains(e.target)
       )
         setShowFilterDropdown(false);
+      if (
+        priorityDropdownRef.current &&
+        !priorityDropdownRef.current.contains(e.target)
+      )
+        setShowPriorityDropdown(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -305,6 +319,94 @@ const TaskListHeader = ({
             )}
           </div>
         )}
+
+        {/* Divider */}
+        <div
+          className="w-px h-5 flex-shrink-0"
+          style={{ backgroundColor: "var(--border)" }}
+        />
+
+        {/* Priority dropdown */}
+        <div className="relative flex-shrink-0" ref={priorityDropdownRef}>
+          <button
+            onClick={() => setShowPriorityDropdown((prev) => !prev)}
+            className={`flex items-center gap-1.5 px-2.5 py-[7px] rounded-lg text-xs font-medium transition-all
+          ${
+            priorityFilter !== "All"
+              ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600"
+              : "text-soft hover:bg-subtle"
+          }`}
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 7h18M6 12h12M9 17h6"
+              />
+            </svg>
+            <span className="hidden sm:inline">
+              {priorityFilter === "All" ? "Priority" : priorityFilter}
+            </span>
+            <svg
+              className={`w-3 h-3 transition-transform ${showPriorityDropdown ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {showPriorityDropdown && (
+            <div className="absolute top-full right-0 mt-1 w-36 bg-card border border-app rounded-xl shadow-lg z-50 overflow-hidden">
+              {PRIORITY_FILTERS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => {
+                    onPriorityFilterChange(p);
+                    setShowPriorityDropdown(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium transition-all flex items-center gap-2
+                ${
+                  priorityFilter === p
+                    ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600"
+                    : "text-soft hover:bg-subtle"
+                }`}
+                >
+                  {priorityFilter === p ? (
+                    <svg
+                      className="w-3 h-3 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  ) : (
+                    <span className="w-3 flex-shrink-0" />
+                  )}
+                  {p}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

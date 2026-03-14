@@ -1,4 +1,8 @@
-import { DENORMALIZE_STATUS, STATUS_CONFIG } from "./taskUtils";
+import {
+  DENORMALIZE_STATUS,
+  STATUS_CONFIG,
+  PRIORITY_CONFIG,
+} from "./taskUtils";
 import { getAvatarColor, getInitials } from "./taskUtils";
 
 export const AssigneeAvatar = ({ full_name, size = "sm" }) => {
@@ -41,6 +45,19 @@ export const StatusBadge = ({ status }) => {
   );
 };
 
+// Reusable priority badge — also used in TaskRow if needed
+export const PriorityBadge = ({ priority }) => {
+  const cfg = PRIORITY_CONFIG[priority];
+  if (!cfg) return null;
+  return (
+    <span
+      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md flex-shrink-0 ${cfg.badge}`}
+    >
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+};
+
 const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
   <div
     onClick={() => onTaskClick?.(normalized)}
@@ -68,41 +85,49 @@ const TaskCard = ({ normalized, onTaskClick, onStatusChange }) => (
       </div>
     </div>
 
-    {(normalized.assigned_to || normalized.due) && (
-      <div className="flex items-center gap-2 mt-3">
-        {normalized.assigned_to && (
-          <AssigneeAvatar full_name={normalized.assigned_to.full_name} />
-        )}
-        {normalized.assigned_to && normalized.due && (
-          <span className="text-muted-app text-xs">·</span>
-        )}
-        {normalized.due && (
-          <span
-            className={`px-2 py-0.5 rounded-md flex items-center gap-1 text-xs whitespace-nowrap
-            ${
-              normalized.isOverdue
-                ? "bg-red-50 dark:bg-red-900/20 text-red-500"
-                : "bg-subtle text-soft"
-            }`}
-          >
-            <svg
-              className={`w-3 h-3 flex-shrink-0 ${normalized.isOverdue ? "text-red-400" : "text-muted-app"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+    {(normalized.assigned_to || normalized.due || normalized.priority) && (
+      <div className="flex items-center justify-between gap-2 mt-3">
+        {/* Left: avatar + due date */}
+        <div className="flex items-center gap-2 min-w-0">
+          {normalized.assigned_to && (
+            <AssigneeAvatar full_name={normalized.assigned_to.full_name} />
+          )}
+          {normalized.assigned_to && normalized.due && (
+            <span className="text-muted-app text-xs">·</span>
+          )}
+          {normalized.due && (
+            <span
+              className={`px-2 py-0.5 rounded-md flex items-center gap-1 text-xs whitespace-nowrap
+          ${
+            normalized.isOverdue
+              ? "bg-red-50 dark:bg-red-900/20 text-red-500"
+              : "bg-subtle text-soft"
+          }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            {normalized.due}
-            {normalized.isOverdue && (
-              <span className="font-semibold">· Overdue</span>
-            )}
-          </span>
+              <svg
+                className={`w-3 h-3 flex-shrink-0 ${normalized.isOverdue ? "text-red-400" : "text-muted-app"}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              {normalized.due}
+              {normalized.isOverdue && (
+                <span className="font-semibold">· Overdue</span>
+              )}
+            </span>
+          )}
+        </div>
+
+        {/* Right: priority badge */}
+        {normalized.priority && (
+          <PriorityBadge priority={normalized.priority} />
         )}
       </div>
     )}

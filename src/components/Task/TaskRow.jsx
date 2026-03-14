@@ -1,5 +1,10 @@
-import { STATUS_CONFIG } from "./taskUtils";
-import { AssigneeAvatar, StatusSelect, StatusBadge } from "./TaskCard";
+import { STATUS_CONFIG, PRIORITY_CONFIG } from "./taskUtils";
+import {
+  AssigneeAvatar,
+  StatusSelect,
+  StatusBadge,
+  PriorityBadge,
+} from "./TaskCard";
 
 const TaskRow = ({ normalized, onTaskClick, onStatusChange }) => {
   const cfg = STATUS_CONFIG[normalized.status] || STATUS_CONFIG["To Do"];
@@ -24,6 +29,9 @@ const TaskRow = ({ normalized, onTaskClick, onStatusChange }) => {
       >
         {normalized.name}
       </span>
+
+      {/* Priority badge */}
+      {normalized.priority && <PriorityBadge priority={normalized.priority} />}
 
       {normalized.isOverdue && (
         <span className="text-xs text-red-400 dark:text-red-500 font-medium flex-shrink-0">

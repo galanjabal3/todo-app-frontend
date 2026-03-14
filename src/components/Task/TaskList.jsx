@@ -30,6 +30,7 @@ const TaskList = ({
   const [editingTask, setEditingTask] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newTask, setNewTask] = useState(createEmptyTask());
+  const [priorityFilter, setPriorityFilter] = useState("All");
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 1000);
@@ -39,6 +40,10 @@ const TaskList = ({
   const normalized = tasks.map((t) => normalizeTask(t, groups, formatDate));
   const filtered = normalized
     .filter((t) => filter === "All" || t.status === filter)
+    .filter(
+      (t) =>
+        priorityFilter === "All" || t.priority === priorityFilter.toLowerCase(),
+    )
     .filter((t) => {
       if (assigneeFilter.length === 0) return true;
       if (assigneeFilter.includes("unassigned") && !t.assigned_to) return true;
@@ -93,7 +98,7 @@ const TaskList = ({
 
   return (
     <>
-      <div className="bg-card rounded-2xl shadow-sm border border-app h-full flex flex-col overflow-hidden transition-colors duration-200">
+      <div className="bg-card rounded-2xl shadow-sm border border-app h-full flex flex-col overflow-visible transition-colors duration-200">
         <TaskListHeader
           title={title}
           search={search}
@@ -108,6 +113,8 @@ const TaskList = ({
           viewMode={viewMode}
           onToggleView={toggleView}
           onAddTask={onCreateTask ? handleAddTaskClick : null}
+          priorityFilter={priorityFilter}
+          onPriorityFilterChange={setPriorityFilter}
         />
 
         <div

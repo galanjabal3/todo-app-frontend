@@ -227,8 +227,8 @@ const TaskModal = ({
                 />
               </Field>
 
-              {/* Due Date + Status */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Due Date + Status + Priority */}
+              <div className="grid grid-cols-3 gap-4">
                 <Field label="Due Date">
                   <input
                     type="datetime-local"
@@ -255,6 +255,21 @@ const TaskModal = ({
                     <option value="todo">📋 To Do</option>
                     <option value="in progress">⏳ In Progress</option>
                     <option value="done">✅ Done</option>
+                  </select>
+                </Field>
+                <Field label="Priority">
+                  <select
+                    value={task.priority || ""}
+                    disabled={!editing}
+                    onChange={(e) =>
+                      setTask({ ...task, priority: e.target.value || null })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="">— None —</option>
+                    <option value="low">🟢 Low</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
                   </select>
                 </Field>
               </div>

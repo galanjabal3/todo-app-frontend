@@ -102,6 +102,7 @@ export const normalizeTask = (task, groups = [], formatDate) => {
     isOverdue,
     groupLabel,
     assigned_to: task.assigned_to || null,
+    priority: task.priority || null,
   };
 };
 
@@ -114,4 +115,29 @@ export const createEmptyTask = () => ({
   status: "todo",
   due_date: null,
   assigned_to: null,
+  priority: null,
 });
+
+// ── Priority constants ─────────────────────────────────────────────────────────
+
+export const PRIORITY_CONFIG = {
+  low: {
+    label: "Low",
+    icon: "🟢",
+    badge:
+      "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
+  },
+  medium: {
+    label: "Medium",
+    icon: "🟡",
+    badge:
+      "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
+  },
+  high: {
+    label: "High",
+    icon: "🔴",
+    badge: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
+  },
+};
+
+export const PRIORITY_FILTERS = ["All", "Low", "Medium", "High"];
